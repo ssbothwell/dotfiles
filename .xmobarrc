@@ -1,0 +1,24 @@
+Config { font = "xft:Bitstream Vera Sans Mono:size=8:bold:antialias=true" 
+        , bgColor = "#002B36"
+        , fgColor = "#585858"
+        , position = Static { xpos = 0, ypos = 0, width = 1825, height = 16 } --TopW L 95
+        , commands = [ Run Cpu [] 10 
+		                 , Run Memory ["-t","Mem: <usedratio>%"] 10
+                     , Run Swap [] 10
+                     , Run StdinReader
+                     , Run DiskU [("/","<used>i/<size>")]
+                                 ["-L","20","-H","50","-m","1","-p","3"]
+                                 20
+                     , Run BatteryP ["BAT1"]
+                                  ["-t", "<acstatus>: <left>%",
+                                   "-L", "10", "-H", "80", "-l", "red",
+                                   "--", 
+                                   "-O", "Charging", "-o", "Bat", "-i", "",
+                                   "-L", "-15", "-H", "-5",
+                                   "-l", "red", "-m", "blue", "-h", "green"]
+                                  600
+		                 , Run Com "/home/solomon/.bin/getVolume.py" [] "volume" 1
+
+                     ]
+        , template = "%StdinReader% }{ %disku% * %cpu% * %memory% * %swap% * %battery% * %volume%    <fc=#ee9a00>%date%</fc>"
+        }

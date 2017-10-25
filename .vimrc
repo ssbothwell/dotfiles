@@ -1,4 +1,4 @@
-""" GENERAL SETTINGS
+"" GENERAL SETTINGS
 set nocompatible
 filetype off
 set wildmenu
@@ -11,8 +11,11 @@ set directory^=$HOME/.vim/tmp//
 " Allow backspacing through autoindents
 set backspace=indent,eol,start 
 " UTF8 
-set encoding=utf-8
-
+"set encoding=UTF-8
+"linux copy/paste
+"set clipboard+=unnamed
+"set paste
+"set go+=a
 
 """ COLOR/UI
 " Match tabline background with unselected tabs
@@ -20,12 +23,13 @@ hi TabLineFill ctermfg=7
 " Syntax Highlighting 
 let python_highlight_all=1
 syntax on
+colorscheme solarized
 " Line Numbers
 set number
 set numberwidth=2
 " Highlight characters past 80
-highlight OverLength ctermbg=red ctermfg=white 
-match OverLength /\%81v.\+/
+"highlight OverLength ctermbg=red ctermfg=white 
+"match OverLength /\%81v.\+/
 
 """ SPACES AND TABS
 " Standard Tabs
@@ -100,29 +104,29 @@ endif
 
 """ TMUX/SYSTEM RELATED
 " yank to clipboard
-if has("clipboard")
-  set clipboard=unnamed " copy to the system clipboard
+"if has("clipboard")
+"  set clipboard=unnamed " copy to the system clipboard
+"
+"  if has("unnamedplus") " X11 support
+"    set clipboard+=unnamedplus
+"  endif
+"endif
 
-  if has("unnamedplus") " X11 support
-    set clipboard+=unnamedplus
-  endif
-endif
-
-" Send currently focused filename to tmux status bar
-autocmd BufEnter * let &titlestring = ' ' . expand("%:t")
-set title
-set t_ts=k
-let &titleold='bash'
+"" Send currently focused filename to tmux status bar
+"autocmd BufEnter * let &titlestring = ' ' . expand("%:t")
+"set title
+"set t_ts=k
+"let &titleold='bash'
 
 
 """ PLUGIN RELATED
 " YouCompleteMe
-let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_python_binary_path = '/usr/local/bin/python'
-nnoremap <Leader>j :YcmCompleter GoTo <CR>
+"let g:ycm_autoclose_preview_window_after_insertion = 1
+"let g:ycm_autoclose_preview_window_after_completion = 1
+"let g:ycm_python_binary_path = '/usr/local/bin/python'
+"nnoremap <Leader>j :YcmCompleter GoTo <CR>
 
 " Enable vim-slime with tmux
-let g:slime_target = "tmux"
-let g:slime_default_config = {"socket_name": split($TMUX, ",")[1], "target_pane": ":.1"}
-let g:slime_python_ipython = 1
+"let g:slime_target = "tmux"
+"let g:slime_default_config = {"socket_name": split($TMUX, ",")[1], "target_pane": ":.1"}
+"let g:slime_python_ipython = 1

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+light-locker &
+stalonetray &
+wicd-client &
+udiskie --tray --use-udisks2 &
+setxkbmap -option ctrl:nocaps & 
+xbindkeys &
+xkbcomp .keyboard.xkb $DISPLAY %
+xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape" &
