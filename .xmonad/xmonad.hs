@@ -7,8 +7,8 @@ import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import System.IO
 import System.Exit
-import qualified Data.Map       as M
-import qualified XMonad.StackSet as W
+import qualified Data.Map               as M
+import qualified XMonad.StackSet        as W
 
 -- Border Colors
 myNormalBorderColor = "#585858"
@@ -23,10 +23,15 @@ gwL = 8
 gwR = 8
 
 -- Launchers
-myBrowser = "/usr/bin/firefox"
+myBrowser       = "/usr/bin/firefox"
+myTerminal      = "/usr/bin/urxvt"      
+myLauncher      = "exe=`dmenu_path | dmenu` && eval \"exec $exe\""
 
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack"] ++ map show [4..9]
+
+-- Layout Gaps
+myLayout = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ layoutHook def
 
 -- Window Rules
 myManageHook = composeAll
@@ -37,14 +42,17 @@ myManageHook = composeAll
         ]
 
 -- Keybindings
-myKeyss = \c -> mkKeymap c $ 
+myKeys = \c -> mkKeymap c $ 
         ----- Custom Keys -----
 
         -- Launch Terminal
-        [ (("M-<Return>")       , spawn $ XMonad.terminal c)
+        [ (("M-<Return>")       , spawn myTerminal)
 
         -- Launch Browser
         , (("M-\\")            , spawn myBrowser)
+
+        -- Launch DMenu
+        , (("M-p")              , spawn myLauncher)
 
         -- Close focused window.
         , (("M-<Backspace>")            , kill)
@@ -95,7 +103,7 @@ myKeyss = \c -> mkKeymap c $
         
 
 main = do
-        xmproc <- spawnPipe "/usr/bin/xmobar ~/.xmobarrc"
+        xmproc <- spawnPipe "/home/solomon/.cabal-sandbox/bin/xmobar ~/.xmobarrc"
         xmonad $ docks def
                 { layoutHook            = avoidStruts $ myLayout
                 , manageHook            = manageHook def <+> myManageHook 
@@ -104,11 +112,9 @@ main = do
                                                 , ppTitle       = xmobarColor "green" "" . shorten 150
                                                 }
                 , modMask               = mod4Mask
-                --, keys                  = \c -> myKeys c `M.union` keys def c
-                , keys                  = myKeyss
+                , keys                  = myKeys
                 , workspaces            = myWorkspaces
                 , normalBorderColor     = myNormalBorderColor
                 , focusedBorderColor    = myFocusedBorderColor
                 }
 
-myLayout = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ layoutHook def

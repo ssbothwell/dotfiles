@@ -27,7 +27,10 @@ fi
 alias ls='ls --color=auto'
 
 # PATH additions
-[[ -d "${HOME}/.bin" ]] && export PATH="${HOME}/.bin:${PATH}:~/.node_modules/bin"
+[[ -d "${HOME}/.bin" ]] && export PATH="${HOME}/.bin:${PATH}:~/.node_modules/bin:~/.cabal-sandbox/bin:~/.local/bin:~/.cabal/bin"
+
+# Cabal
+PATH=$PATH:~/.cabal/bin
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim

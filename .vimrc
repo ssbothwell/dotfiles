@@ -121,10 +121,13 @@ endif
 
 """ PLUGIN RELATED
 " YouCompleteMe
-"let g:ycm_autoclose_preview_window_after_insertion = 1
-"let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:ycm_autoclose_preview_window_after_completion = 1
 "let g:ycm_python_binary_path = '/usr/local/bin/python'
-"nnoremap <Leader>j :YcmCompleter GoTo <CR>
+nnoremap <Leader>j :YcmCompleter GoTo <CR>
+
+" Solarized
+let g:solarized_termtrans = 1
 
 " Enable vim-slime with tmux
 "let g:slime_target = "tmux"
