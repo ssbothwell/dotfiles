@@ -6,19 +6,12 @@ Config { font = "xft:Bitstream Vera Sans Mono:size=8:bold:antialias=true,FontAwe
                      , Run DiskU [("/"," <used>i/<size>")]
                                  ["-L","20","-H","50","-m","1","-p","3"]
                                  20
-                     , Run BatteryP ["BAT1"]
-                                  ["-t", "<acstatus> <left>%"
-                                   , "-L", "10", "-H", "80", "-l", "red"
-                                   , "--"
-                                   , "-O", "", "-o", " ", "-i", ""
-                                   , "-L", "-15", "-H", "-5"
-                                   , "-l", "red", "-m", "blue", "-h", "green"]
-                                  10
                      , Run Volume "default" "Master" [ "-t", "<status> <volume>%"
                                                      , "--", "-O", "", "-o", "" 
                                                      , "-C", "#585858"
                                                      ]
                                                      1
+                     , Run Com "/home/solomon/.bin/getBattery.py" [] "battery" 100
 
                      ]
         , template = "%StdinReader% }{ %disku% %default:Master% %battery% <fc=#ee9a00>%date%</fc>"
