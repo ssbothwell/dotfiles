@@ -29,4 +29,4 @@ elif percent < 26: battery = quarter
 elif percent < 51: battery = half
 elif percent < 75: battery = threequarters
 else:              battery = full
-print(f"{AC}{battery} {percent}%")
+print(f"{AC} {battery} {percent}%")
