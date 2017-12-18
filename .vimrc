@@ -55,9 +55,9 @@ au BufNewFile,BufRead *.js,*.html set shiftwidth=2
 au BufNewFile,BufRead *.js,*.html set expandtab
 au BufNewFile,BufRead *.js let javaScript_fold=1 
 " Haskell
-au BufNewFile, BufRead *.hs set tabstop=8
-au BufNewFile,BufRead *.hs set softtabstop=8
-au BufNewFile,BufRead *.hs set shiftwidth=8
+au BufNewFile, BufRead *.hs set tabstop=4
+au BufNewFile,BufRead *.hs set softtabstop=4
+au BufNewFile,BufRead *.hs set shiftwidth=4
 au BufNewFile,BufRead *.hs set textwidth=79
 au BufNewFile,BufRead *.hs set expandtab
 au BufNewFile,BufRead *.hs set autoindent
