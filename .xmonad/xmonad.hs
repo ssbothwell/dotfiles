@@ -5,30 +5,12 @@ import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig
 import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
+import XMonad.Actions.DynamicProjects
 import System.IO
 import System.Exit
 import Data.Maybe
 import qualified Data.Map               as M
 import qualified XMonad.StackSet        as W
-
---spawnTerm :: X ()
---spawnTerm = do
---  windowID <- (fromMaybe 0 . W.peek . windowset) <$> get
---  dir <- withDisplay (\dpy -> io $ getIconName dpy windowID)
---  spawn $ "cd " ++ tail (dropWhile (/= ':') dir) ++ "; urxvt"
---  --spawn $ "echo \"" ++ tail (dropWhile (/= ':') dir) ++ "\" | xmessage -file -"
-
-
---spawnTerm :: X ()
---spawnTerm = do
---        windowID <- (W.peek . windowset) <$> get
---        case windowID of
---                Just winID -> do
---                        dir <- withDisplay (\dpy -> io $ getIconName dpy winID)
---                        --spawn $ "echo \"" ++ tail (dropWhile (/= ':') dir) ++ "\" | xmessage -file -"
---                        --spawn $ "cd " ++ (dropWhile (/= ':') dir) ++ "; uxrvt"
---                        spawn "/usr/bin/urxvt"
---                Nothing -> spawn "/usr/bin/urxvt"
 
 
 -- Border Colors
@@ -52,6 +34,17 @@ myTrello        = "/usr/bin/surf www.trello.com"
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
 
+
+-- Projects
+projects :: [Project]
+projects =
+    [ Project { projectName      = "haskell-book"
+              , projectDirectory = "~/Development/haskell/haskell_book"
+              , projectStartHook = Just $ do spawn "urxvt"
+              }
+    ]
+
+
 -- Layouts
 myLayouts = tiled ||| Full
   where
@@ -69,99 +62,102 @@ myLayoutHook = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ m
 
 -- Window Rules
 myManageHook = composeAll
-        [ className =? "firefox"        --> doShift "2:web"
-        , className =? "slack"          --> doShift "3:slack"
-        , className =? "stalonetray"    --> doIgnore
-        , manageDocks  
-        ]
+    [ className =? "firefox"        --> doShift "2:web"
+    , className =? "slack"          --> doShift "3:slack"
+    , className =? "stalonetray"    --> doIgnore
+    , manageDocks  
+    ]
 
 -- Keybindings
 myKeys = \c -> mkKeymap c $ 
-        ----- Custom Keys -----
+    ----- Custom Keys -----
 
-        -- Launch Terminal
-        [ (("M-<Return>")       , spawn myTerminal )
+    -- Launch Terminal
+    [ (("M-<Return>")       , spawn myTerminal )
 
-        -- Launch Browser
-        , (("M-\\")             , spawn myBrowser)
+    -- Launch Browser
+    , (("M-\\")             , spawn myBrowser)
 
-        -- Launch DMenu
-        , (("M-p")              , spawn myLauncher)
+    -- Launch DMenu
+    , (("M-p")              , spawn myLauncher)
 
-        -- Launch Trello
-        , (("M-o")              , spawn myTrello)
-        
-        -- Close focused window.
-        , (("M-<Backspace>")    , kill)
+    -- Launch Trello
+    , (("M-o")              , spawn myTrello)
+    
+    -- Close focused window.
+    , (("M-<Backspace>")    , kill)
 
-        -- Mute/Unmute amixer
-        , (("<XF86AudioMute>")  , spawn "amixer -D pulse set Master 1+ toggle")
+    -- dynamicProjects
+    , (("M-i")              , switchProjectPrompt myPromptTheme)
 
-        -- Increase/decrease amixer volume
-        , (("<XF86AudioRaiseVolume>")     , spawn "amixer set Master 10%+")
-        , (("<XF86AudioLowerVolume>")     , spawn "amixer set Master 10%-")
+    -- Mute/Unmute amixer
+    , (("<XF86AudioMute>")  , spawn "amixer -D pulse set Master 1+ toggle")
 
-        ----- Standard Xmonad Keys -----
-        
-        --- System:
-        -- Restart Xmonad
-        , (("M-q")              , restart "xmonad" True) 
+    -- Increase/decrease amixer volume
+    , (("<XF86AudioRaiseVolume>")     , spawn "amixer set Master 10%+")
+    , (("<XF86AudioLowerVolume>")     , spawn "amixer set Master 10%-")
 
-        -- Quit xmonad.
-        , (("M-S-q")            , io (exitWith ExitSuccess))
+    ----- Standard Xmonad Keys -----
+    
+    --- System:
+    -- Restart Xmonad
+    , (("M-q")              , spawn "xmonad --recompile && xmonad --restart")
 
-        --- Windows: 
+    -- Quit xmonad.
+    , (("M-S-q")            , io (exitWith ExitSuccess))
 
-        -- Move focus to the next window.
-        , (("M-j")              , windows W.focusDown)
-        
-        -- Move focus to the previous window.
-        , (("M-k")              , windows W.focusUp )
+    --- Windows: 
 
-        -- Swap the focused window with the next window.
-        , (("M-S-j")            , windows W.swapDown  )
-        
-        -- Swap the focused window with the previous window.
-        , (("M-S-k")            , windows W.swapUp )
+    -- Move focus to the next window.
+    , (("M-j")              , windows W.focusDown)
+    
+    -- Move focus to the previous window.
+    , (("M-k")              , windows W.focusUp )
 
-        -- Shrink the master area.
-        , (("M-h")              , sendMessage Shrink)
-        
-        -- Expand the master area.
-        , (("M-l")              , sendMessage Expand)
+    -- Swap the focused window with the next window.
+    , (("M-S-j")            , windows W.swapDown  )
+    
+    -- Swap the focused window with the previous window.
+    , (("M-S-k")            , windows W.swapUp )
 
-        -- Cycle through the available layout algorithms.
-        , (("M-<Space>")        , sendMessage NextLayout) 
+    -- Shrink the master area.
+    , (("M-h")              , sendMessage Shrink)
+    
+    -- Expand the master area.
+    , (("M-l")              , sendMessage Expand)
 
-        -- Push window back into tiling
-        , (("M-t")              , withFocused $ windows . W.sink)
+    -- Cycle through the available layout algorithms.
+    , (("M-<Space>")        , sendMessage NextLayout) 
 
-        ]
+    -- Push window back into tiling
+    , (("M-t")              , withFocused $ windows . W.sink)
 
-        ++
+    ]
 
-        -- mod-[1..9], Switch to workspace N
-        -- mod-shift-[1..9], Move client to workspace N
-        [ (m ++ i, windows $ f j)
-            | (i, j) <- zip (map show [1..9]) (XMonad.workspaces c)
-            , (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)] --Shift wndw to ws
-        ]
+    ++
 
-        
+    -- mod-[1..9], Switch to workspace N
+    -- mod-shift-[1..9], Move client to workspace N
+    [ (m ++ i, windows $ f j)
+        | (i, j) <- zip (map show [1..9]) (XMonad.workspaces c)
+        , (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)] --Shift wndw to ws
+    ]
+
+    
 
 main = do
-        xmproc <- spawnPipe "/home/solomon/.cabal-sandbox/bin/xmobar ~/.xmobarrc"
-        xmonad $ docks def
-                { layoutHook            = avoidStruts $ myLayoutHook
-                , manageHook            = manageHook def <+> myManageHook 
-                , logHook               = dynamicLogWithPP xmobarPP
-                                                { ppOutput      = hPutStrLn xmproc
-                                                , ppTitle       = xmobarColor "green" "" . shorten 150
-                                                }
-                , modMask               = mod4Mask
-                , keys                  = myKeys
-                , workspaces            = myWorkspaces
-                , normalBorderColor     = myNormalBorderColor
-                , focusedBorderColor    = myFocusedBorderColor
-                }
+    xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
+    xmonad $ dynamicProjects projects $ docks def
+        { layoutHook            = avoidStruts $ myLayoutHook
+        , manageHook            = manageHook def <+> myManageHook 
+        , logHook               = dynamicLogWithPP xmobarPP
+            { ppOutput  = hPutStrLn xmproc
+            , ppTitle   = xmobarColor "green" "" . shorten 150
+            }
+        , modMask               = mod4Mask
+        , keys                  = myKeys
+        , workspaces            = myWorkspaces
+        , normalBorderColor     = myNormalBorderColor
+        , focusedBorderColor    = myFocusedBorderColor
+        }
 
