@@ -6,12 +6,35 @@ import XMonad.Util.EZConfig
 import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import XMonad.Actions.DynamicProjects
+import XMonad.Prompt
 import System.IO
 import System.Exit
 import Data.Maybe
 import qualified Data.Map               as M
 import qualified XMonad.StackSet        as W
+import Data.Char (toLower)
+import Data.List (isInfixOf)
 
+-- | A case-insensitive substring predicate function.
+predicateFunction :: String -> String -> Bool
+predicateFunction x y = lc x `isInfixOf` lc y where lc = map toLower
+
+promptConfig :: XPConfig
+promptConfig = def
+  { position          = CenteredAt (1/3) (1/2)
+  , height            = 35
+  , font              = "xft:dejavu sans mono:size=14"
+  , bgColor           = "#002b36"
+  , fgColor           = "#93a1a1"
+  , fgHLight          = "#d33682"
+  , bgHLight          = "#073642"
+  , borderColor       = "#053542"
+  , promptBorderWidth = 5
+  , maxComplRows      = Just 12
+  , alwaysHighlight   = True
+  , promptKeymap      = emacsLikeXPKeymap
+  , searchPredicate   = predicateFunction
+}
 
 -- Border Colors
 myNormalBorderColor = "#585858"
@@ -41,7 +64,14 @@ projects =
     [ Project { projectName      = "haskell-book"
               , projectDirectory = "~/Development/haskell/haskell_book"
               , projectStartHook = Just $ do spawn "urxvt"
+                                             spawn "urxvt"
               }
+    , Project { projectName      = "python"
+              , projectDirectory = "~/Development/python"
+              , projectStartHook = Just $ do spawn "urxvt"
+                                             spawn "urxvt; ipython"
+              }
+
     ]
 
 
@@ -88,7 +118,7 @@ myKeys = \c -> mkKeymap c $
     , (("M-<Backspace>")    , kill)
 
     -- dynamicProjects
-    , (("M-i")              , switchProjectPrompt myPromptTheme)
+    , (("M-i")              , switchProjectPrompt promptConfig)
 
     -- Mute/Unmute amixer
     , (("<XF86AudioMute>")  , spawn "amixer -D pulse set Master 1+ toggle")
