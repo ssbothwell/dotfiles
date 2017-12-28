@@ -3,6 +3,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig
+import XMonad.Util.Scratchpad
 import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import XMonad.Actions.DynamicProjects
@@ -10,12 +11,10 @@ import XMonad.Prompt
 import XMonad.Layout.Named
 import System.IO
 import System.Exit
-import Data.Maybe
 import qualified Data.Map               as M
 import qualified XMonad.StackSet        as W
 import Data.Char (toLower)
 import Data.List (isInfixOf)
-
 
 
 -- Border Colors
@@ -61,9 +60,17 @@ myManageHook = composeAll
     , manageDocks  
     ]
 
+-- Terminal Scratchpad
+manageScratchPad :: ManageHook
+manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
+  where
+    h = 0.1     -- terminal height, 10%
+    w = 1       -- terminal width, 100%
+    t = 1 - h   -- distance from top edge, 90%
+    l = 1 - w   -- distance from left edge, 0%
 
 ---------  Experimental. Not actually useful as is ---------  
--- Projects
+--Projects
 projects :: [Project]
 projects =
     [ Project { projectName      = "haskell-book"
@@ -79,7 +86,7 @@ projects =
 
     ]
 
--- | A case-insensitive substring predicate function.
+-- A case-insensitive substring predicate function.
 predicateFunction :: String -> String -> Bool
 predicateFunction x y = lc x `isInfixOf` lc y where lc = map toLower
 
@@ -103,71 +110,6 @@ promptConfig = def
 
 -- Keybindings
 myKeys = \c -> mkKeymap c $ 
-    ----- Custom Keys -----
-
-    -- Launch Terminal
-    [ (("M-<Return>")       , spawn myTerminal )
-
-    -- Launch Browser
-    , (("M-\\")             , spawn myBrowser)
-
-    -- Launch DMenu
-    , (("M-p")              , spawn myLauncher)
-
-    -- Launch Trello
-    , (("M-o")              , spawn myTrello)
-    
-    -- Close focused window.
-    , (("M-<Backspace>")    , kill)
-
-    -- dynamicProjects
-    , (("M-i")              , switchProjectPrompt promptConfig)
-
-    -- Mute/Unmute amixer
-    , (("<XF86AudioMute>")  , spawn "amixer -D pulse set Master 1+ toggle")
-
-    -- Increase/decrease amixer volume
-    , (("<XF86AudioRaiseVolume>")     , spawn "amixer set Master 10%+")
-    , (("<XF86AudioLowerVolume>")     , spawn "amixer set Master 10%-")
-
-    ----- Standard Xmonad Keys -----
-    
-    --- System:
-    -- Restart Xmonad
-    , (("M-q")              , spawn "xmonad --recompile && xmonad --restart")
-
-    -- Quit xmonad.
-    , (("M-S-q")            , io (exitWith ExitSuccess))
-
-    --- Windows: 
-
-    -- Move focus to the next window.
-    , (("M-j")              , windows W.focusDown)
-    
-    -- Move focus to the previous window.
-    , (("M-k")              , windows W.focusUp )
-
-    -- Swap the focused window with the next window.
-    , (("M-S-j")            , windows W.swapDown  )
-    
-    -- Swap the focused window with the previous window.
-    , (("M-S-k")            , windows W.swapUp )
-
-    -- Shrink the master area.
-    , (("M-h")              , sendMessage Shrink)
-    
-    -- Expand the master area.
-    , (("M-l")              , sendMessage Expand)
-
-    -- Cycle through the available layout algorithms.
-    , (("M-<Space>")        , sendMessage NextLayout) 
-
-    -- Push window back into tiling
-    , (("M-t")              , withFocused $ windows . W.sink)
-
-    ]
-
-    ++
 
     -- mod-[1..9], Switch to workspace N
     -- mod-shift-[1..9], Move client to workspace N
@@ -175,14 +117,41 @@ myKeys = \c -> mkKeymap c $
         | (i, j) <- zip (map show [1..9]) (XMonad.workspaces c)
         , (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)] --Shift wndw to ws
     ]
-
-    
+    ++
+    [ (("M-<Return>")             , spawn myTerminal)               -- Launch Terminal
+    , (("M-\\")                   , spawn myBrowser)                -- Launch Browser
+    , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
+    , (("M-o")                    , spawn myTrello)                 -- Launch Trello
+    , (("M-<Backspace>")          , kill)                           -- Close focused window.
+    , (("M-t")                    , scratchpad)                     -- Scratchpad Terminal
+    , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
+    , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
+    , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
+    , (("M-q")                    , recompile)                      -- Restart Xmonad
+    , (("M-S-q")                  , io (exitWith ExitSuccess))      -- Quit xmonad
+    , (("M-j")                    , windows W.focusDown)            -- Move focus to the next window.
+    , (("M-k")                    , windows W.focusUp)              -- Move focus to the previous window.
+    , (("M-S-j")                  , windows W.swapDown)             -- Swap the focused window with the next window.
+    , (("M-S-k")                  , windows W.swapUp)               -- Swap the focused window with the previous window.
+    , (("M-h")                    , sendMessage Shrink)             -- Shrink the master area.
+    , (("M-l")                    , sendMessage Expand)             -- Expand the master area.
+    , (("M-<Space>")              , sendMessage NextLayout)         -- Cycle through the available layout algorithms.
+    , (("M-t")                    , withFocused $ windows . W.sink) -- Push window back into tiling
+    ]
+      where 
+            toggleMute    = spawn "amixer -D pulse set Master 1+ toggle"
+            volumeUp      = spawn "amixer set Master 10%+"
+            volumeDown    = spawn "amixer set Master 10%-"
+            recompile     = spawn "xmonad --recompile && xmonad --restart"
+            scratchpad    = scratchpadSpawnActionTerminal myTerminal
+            projectPrompt = switchProjectPrompt promptConfig
 
 main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
-    xmonad $ dynamicProjects projects $ docks def
+    xmonad $ docks def --dynamicProjects projects $ docks def
         { layoutHook            = avoidStruts $ myLayoutHook
-        , manageHook            = myManageHook <+> manageHook def
+        , manageHook            = myManageHook <+> manageHook def <+> manageScratchPad
         , logHook               = dynamicLogWithPP xmobarPP
             { ppOutput  = hPutStrLn xmproc
             , ppLayout  = (\x -> drop 10 x)
