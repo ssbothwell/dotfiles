@@ -7,6 +7,7 @@ import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import XMonad.Actions.DynamicProjects
 import XMonad.Prompt
+import XMonad.Layout.Named
 import System.IO
 import System.Exit
 import Data.Maybe
@@ -14,6 +15,69 @@ import qualified Data.Map               as M
 import qualified XMonad.StackSet        as W
 import Data.Char (toLower)
 import Data.List (isInfixOf)
+
+
+
+-- Border Colors
+myNormalBorderColor = "#585858"
+myFocusedBorderColor = "#d70000"
+
+-- Gap Widths
+gapwidth = 4
+gwU = 8
+gwD = 8
+gwL = 8
+gwR = 8
+
+--Gaps
+myLayoutHook = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ myLayouts
+
+-- Layouts
+myLayouts = tiled ||| Full
+  where
+    -- default tiling algorithm partitions the screen into two panes
+    tiled   = Tall nmaster delta ratio
+    -- The default number of windows in the master pane
+    nmaster = 1
+    -- Default proportion of screen occupied by master pane
+    ratio   = 1/2
+    -- Percent of screen to increment by when resizing panes
+    delta   = 3/100
+
+-- Launchers
+myBrowser       = "/usr/bin/firefox"
+myTerminal      = "/usr/bin/urxvt"      
+myLauncher      = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
+myTrello        = "/usr/bin/surf www.trello.com"
+
+-- Workspaces
+myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
+
+-- Window Rules
+myManageHook = composeAll
+    [ className =? "wicd-gtk"       --> doFloat
+    , className =? "firefox"        --> doShift "2:web"
+    , className =? "stalonetray"    --> doIgnore
+    , manageDocks  
+    ]
+
+
+---------  Experimental. Not actually useful as is ---------  
+-- Projects
+projects :: [Project]
+projects =
+    [ Project { projectName      = "haskell-book"
+              , projectDirectory = "~/Development/haskell/haskell_book"
+              , projectStartHook = Just $ do spawn "urxvt"
+                                             spawn "urxvt"
+              }
+    , Project { projectName      = "python"
+              , projectDirectory = "~/Development/python"
+              , projectStartHook = Just $ do spawn "urxvt"
+                                             spawn "urxvt; ipython"
+              }
+
+    ]
 
 -- | A case-insensitive substring predicate function.
 predicateFunction :: String -> String -> Bool
@@ -35,68 +99,7 @@ promptConfig = def
   , promptKeymap      = emacsLikeXPKeymap
   , searchPredicate   = predicateFunction
 }
-
--- Border Colors
-myNormalBorderColor = "#585858"
-myFocusedBorderColor = "#d70000"
-
-
--- Gap Widths
-gapwidth = 4
-gwU = 8
-gwD = 8
-gwL = 8
-gwR = 8
-
--- Launchers
-myBrowser       = "/usr/bin/firefox"
-myTerminal      = "/usr/bin/urxvt"      
-myLauncher      = "exe=`dmenu_path | dmenu` && eval \"exec $exe\""
-myTrello        = "/usr/bin/surf www.trello.com"
-
--- Workspaces
-myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
-
-
--- Projects
-projects :: [Project]
-projects =
-    [ Project { projectName      = "haskell-book"
-              , projectDirectory = "~/Development/haskell/haskell_book"
-              , projectStartHook = Just $ do spawn "urxvt"
-                                             spawn "urxvt"
-              }
-    , Project { projectName      = "python"
-              , projectDirectory = "~/Development/python"
-              , projectStartHook = Just $ do spawn "urxvt"
-                                             spawn "urxvt; ipython"
-              }
-
-    ]
-
-
--- Layouts
-myLayouts = tiled ||| Full
-  where
-    -- default tiling algorithm partitions the screen into two panes
-    tiled   = Tall nmaster delta ratio
-    -- The default number of windows in the master pane
-    nmaster = 1
-    -- Default proportion of screen occupied by master pane
-    ratio   = 1/2
-    -- Percent of screen to increment by when resizing panes
-    delta   = 3/100
-
---Gaps
-myLayoutHook = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ myLayouts
-
--- Window Rules
-myManageHook = composeAll
-    [ className =? "firefox"        --> doShift "2:web"
-    , className =? "slack"          --> doShift "3:slack"
-    , className =? "stalonetray"    --> doIgnore
-    , manageDocks  
-    ]
+------------------------------------------------------------
 
 -- Keybindings
 myKeys = \c -> mkKeymap c $ 
@@ -179,9 +182,10 @@ main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
     xmonad $ dynamicProjects projects $ docks def
         { layoutHook            = avoidStruts $ myLayoutHook
-        , manageHook            = manageHook def <+> myManageHook 
+        , manageHook            = myManageHook <+> manageHook def
         , logHook               = dynamicLogWithPP xmobarPP
             { ppOutput  = hPutStrLn xmproc
+            , ppLayout  = (\x -> drop 10 x)
             , ppTitle   = xmobarColor "green" "" . shorten 150
             }
         , modMask               = mod4Mask
@@ -190,4 +194,3 @@ main = do
         , normalBorderColor     = myNormalBorderColor
         , focusedBorderColor    = myFocusedBorderColor
         }
-
