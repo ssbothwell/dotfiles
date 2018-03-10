@@ -54,8 +54,9 @@ myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++
 
 -- Window Rules
 myManageHook = composeAll
-    [ className =? "wicd-gtk"       --> doFloat
-    , className =? "firefox"        --> doShift "2:web"
+    [ className =? "Wicd-client.py"       --> doFloat
+    , className =? "Firefox"        --> doShift "2:web"
+    , className =? "Slack"        --> doShift "3:slack"
     , className =? "stalonetray"    --> doIgnore
     , manageDocks  
     ]

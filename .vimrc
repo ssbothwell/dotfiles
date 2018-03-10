@@ -68,6 +68,7 @@ autocmd BufNewFile,BufRead *.txt set tw=72
 """ FOLDING
 "set foldmethod=syntax
 "set foldlevelstart=99 
+set nofoldenable
 
 
 """ KEY MAPPINGS
