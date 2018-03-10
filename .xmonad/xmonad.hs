@@ -124,7 +124,7 @@ myKeys = \c -> mkKeymap c $
     , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-<Backspace>")          , kill)                           -- Close focused window.
-    , (("M-t")                    , scratchpad)                     -- Scratchpad Terminal
+    --, (("M-t")                    , scratchpad)                     -- Scratchpad Terminal
     , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
@@ -148,6 +148,16 @@ myKeys = \c -> mkKeymap c $
             scratchpad    = scratchpadSpawnActionTerminal myTerminal
             projectPrompt = switchProjectPrompt promptConfig
 
+-- Mouse Bindings
+myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
+    [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w 
+                                       >> windows W.shiftMaster)) -- Set window to float and move by dragging
+    , ((modm, button2), (\w -> focus w >> windows W.shiftMaster)) -- Raise the window to the top of the stack
+    , ((modm, button3), (\w -> focus w >> mouseResizeWindow w 
+                                       >> windows W.shiftMaster)) -- Set window to float and resize by dragging
+    ]
+ 
+
 main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
     xmonad $ docks def --dynamicProjects projects $ docks def
@@ -160,6 +170,7 @@ main = do
             }
         , modMask               = mod4Mask
         , keys                  = myKeys
+        --, myMouseBindings       = myMouseBindings
         , workspaces            = myWorkspaces
         , normalBorderColor     = myNormalBorderColor
         , focusedBorderColor    = myFocusedBorderColor

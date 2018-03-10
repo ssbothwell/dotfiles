@@ -4,9 +4,7 @@ light-locker &
 stalonetray &
 wicd-client -t &
 udiskie --tray --use-udisks2 &
-setxkbmap -option ctrl:nocaps & 
-xkbcomp .keyboard.xkb $DISPLAY %
-xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape" &
+$HOME/.bin/init-keyboard.sh
 xsetroot -solid "#002b36"
 xbanish &
 
