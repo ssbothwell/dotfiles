@@ -125,7 +125,7 @@ myKeys = \c -> mkKeymap c $
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-<Backspace>")          , kill)                           -- Close focused window.
     --, (("M-t")                    , scratchpad)                     -- Scratchpad Terminal
-    , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
     , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume

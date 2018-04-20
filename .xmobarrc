@@ -1,18 +1,20 @@
 Config { font = "xft:Bitstream Vera Sans Mono:size=8:bold:antialias=true,FontAwesome:size=8"
-        , bgColor = "#002B36"
-        , fgColor = "#585858"
-        , position = Static { xpos = 0, ypos = 0, width = 1825, height = 20 } --TopW L 95
-        , commands = [ Run StdinReader
-                     , Run DiskU [("/"," <used>i/<size>")]
-                                 ["-L","20","-H","50","-m","1","-p","3"]
-                                 20
-                     , Run Volume "default" "Master" [ "-t", "<status> <volume>%"
-                                                     , "--", "-O", "", "-o", "" 
-                                                     , "-C", "#585858"
-                                                     ]
-                                                     1
-                     , Run Com "/home/solomon/.bin/getBattery.py" [] "battery" 100
+       , allDesktops  = True    -- show on all desktops
+       , pickBroadest = True   -- choose widest display (multi-monitor)
+       , bgColor      = "#002B36"
+       , fgColor      = "#585858"
+       , position     = Static { xpos = 0, ypos = 0, width = 1825, height = 20 } --TopW L 95
+       , commands     = [ Run StdinReader
+                        , Run DiskU [("/"," <used>i/<size>")]
+                                    ["-L","20","-H","50","-m","1","-p","3"]
+                                    20
+                        , Run Volume "default" "Master" [ "-t", "<status> <volume>%"
+                                                        , "--", "-O", "", "-o", "" 
+                                                        , "-C", "#585858"
+                                                        ]
+                                                        1
+                        , Run Com "/home/solomon/.bin/getBattery.py" [] "battery" 100
 
-                     ]
-        , template = "%StdinReader% }{ %disku% %default:Master% %battery% <fc=#ee9a00>%date%</fc>"
-        }
+                        ]
+       , template     = "%StdinReader% }{ %disku% %default:Master% %battery% <fc=#ee9a00>%date%</fc>"
+       }
