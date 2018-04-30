@@ -65,10 +65,10 @@ myManageHook = composeAll
 manageScratchPad :: ManageHook
 manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
   where
-    h = 0.1     -- terminal height, 10%
-    w = 1       -- terminal width, 100%
-    t = 1 - h   -- distance from top edge, 90%
-    l = 1 - w   -- distance from left edge, 0%
+    h = 0.8     -- terminal height, 10%
+    w = 0.6     -- terminal width, 60%
+    t = 0.1     -- distance from top edge, 10%
+    l = 0.2     -- distance from left edge, 40%
 
 ---------  Experimental. Not actually useful as is ---------  
 --Projects
@@ -124,7 +124,7 @@ myKeys = \c -> mkKeymap c $
     , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-<Backspace>")          , kill)                           -- Close focused window.
-    --, (("M-t")                    , scratchpad)                     -- Scratchpad Terminal
+    , (("M-`")                    , scratchpad)                     -- Scratchpad Terminal
     --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume

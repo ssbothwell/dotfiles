@@ -84,13 +84,13 @@ XTerm.vt100.faceName:   Meslo:style=Regular
 XTerm*faceSize:         10
 XTerm*utf8:             1
 
-URxvt.font:             xft:Meslo LG M:style=Regular:size=10
+URxvt.font:             xft:Meslo LG M:style=Regular:size=16
 URxvt.scrollBar:        false
 !!URxvt.depth:            32
 !!urxvt*background:       rgba:0000/0000/0200/c800
 !!urxvt*transparent:      true
 !!urxvt*shading:          30
-Xft.dpi:                96
+Xft.dpi:                90
 Xft.autohint:           0
 Xft.lcdfilter:          lcddefault
 Xft.hintstyle:          hintfull
