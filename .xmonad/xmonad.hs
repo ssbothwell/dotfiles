@@ -3,7 +3,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig
-import XMonad.Util.Scratchpad
+import XMonad.Util.NamedScratchpad
 import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import XMonad.Actions.DynamicProjects
@@ -44,34 +44,47 @@ myLayouts = tiled ||| Full
     delta   = 3/100
 
 -- Launchers
-myBrowser       = "/usr/bin/firefox"
-myTerminal      = "/usr/bin/urxvt"      
-myLauncher      = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
-myTrello        = "/usr/bin/surf www.trello.com"
+myBrowser  = "/usr/bin/firefox"
+myTerminal = "/home/solomon/.local/bin/st"      
+myLauncher = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
+myTrello   = "/usr/bin/surf www.trello.com"
+myPostman  = "/usr/bin/postman"
 
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
 
 -- Window Rules
 myManageHook = composeAll
-    [ className =? "Wicd-client.py"       --> doFloat
+    [ className =? "Wicd-client.py" --> doFloat
+    , className =? "postman"        --> doFloat
     , className =? "Firefox"        --> doShift "2:web"
-    , className =? "Slack"        --> doShift "3:slack"
+    , className =? "Slack"          --> doShift "3:slack"
     , className =? "stalonetray"    --> doIgnore
     , manageDocks  
     ]
 
--- Terminal Scratchpad
-manageScratchPad :: ManageHook
-manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
-  where
-    h = 0.8     -- terminal height, 10%
-    w = 0.6     -- terminal width, 60%
-    t = 0.1     -- distance from top edge, 10%
-    l = 0.2     -- distance from left edge, 40%
+-- Scratchpads
 
----------  Experimental. Not actually useful as is ---------  
---Projects
+myScratchPads = [ NS "terminal" spawnTerm  findTerm manageTerm
+                , NS "postman"  spawnPostman findPostman managePostman
+                ]
+
+    where spawnTerm     = myTerminal ++ " -name scratchpad"
+          findTerm      = resource =?   "scratchpad"
+          manageTerm    = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
+          spawnPostman  = myPostman
+          findPostman   = className =? "postman"
+          managePostman = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
+          
+--manageScratchPad :: ManageHook
+--manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
+--  where
+--    h = 0.8     -- terminal height, 10%
+--    w = 0.6     -- terminal width, 60%
+--    t = 0.1     -- distance from top edge, 10%
+--    l = 0.2     -- distance from left edge, 40%
+
+-- Projects
 projects :: [Project]
 projects =
     [ Project { projectName      = "haskell-book"
@@ -79,10 +92,10 @@ projects =
               , projectStartHook = Just $ do spawn "urxvt"
                                              spawn "urxvt"
               }
-    , Project { projectName      = "python"
-              , projectDirectory = "~/Development/python"
+    , Project { projectName      = "Tripp Inc"
+              , projectDirectory = "~/Development/trippinc/firebase-backend/src"
               , projectStartHook = Just $ do spawn "urxvt"
-                                             spawn "urxvt; ipython"
+                                             spawn "urxvt"
               }
 
     ]
@@ -124,8 +137,9 @@ myKeys = \c -> mkKeymap c $
     , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-<Backspace>")          , kill)                           -- Close focused window.
-    , (("M-`")                    , scratchpad)                     -- Scratchpad Terminal
-    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    , (("M-`")                    , terminalScratchpad)             -- Scratchpad Terminal
+    , (("M-r")                    , postmanScratchpad)              -- Scratchpad Postman
+    , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
     , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
@@ -141,12 +155,13 @@ myKeys = \c -> mkKeymap c $
     , (("M-t")                    , withFocused $ windows . W.sink) -- Push window back into tiling
     ]
       where 
-            toggleMute    = spawn "amixer -D pulse set Master 1+ toggle"
-            volumeUp      = spawn "amixer set Master 10%+"
-            volumeDown    = spawn "amixer set Master 10%-"
-            recompile     = spawn "xmonad --recompile && xmonad --restart"
-            scratchpad    = scratchpadSpawnActionTerminal myTerminal
-            projectPrompt = switchProjectPrompt promptConfig
+            toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
+            volumeUp           = spawn "amixer set Master 10%+"
+            volumeDown         = spawn "amixer set Master 10%-"
+            recompile          = spawn "xmonad --recompile && xmonad --restart"
+            terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
+            postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
+            projectPrompt      = switchProjectPrompt promptConfig
 
 -- Mouse Bindings
 myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
@@ -160,13 +175,15 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 
 main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
-    xmonad $ docks def --dynamicProjects projects $ docks def
+    xmonad $ docks $ dynamicProjects projects def
         { layoutHook            = avoidStruts $ myLayoutHook
-        , manageHook            = myManageHook <+> manageHook def <+> manageScratchPad
+        , manageHook            = myManageHook <+> manageHook def <+> namedScratchpadManageHook myScratchPads   
         , logHook               = dynamicLogWithPP xmobarPP
-            { ppOutput  = hPutStrLn xmproc
-            , ppLayout  = (\x -> drop 10 x)
-            , ppTitle   = xmobarColor "green" "" . shorten 150
+            { ppOutput          = hPutStrLn xmproc
+            , ppLayout          = (\x -> drop 10 x)
+            , ppTitle           = xmobarColor "green" "" . shorten 150
+            , ppHidden          = noScratchPad
+            , ppHiddenNoWindows = (\x -> "")
             }
         , modMask               = mod4Mask
         , keys                  = myKeys
@@ -175,3 +192,5 @@ main = do
         , normalBorderColor     = myNormalBorderColor
         , focusedBorderColor    = myFocusedBorderColor
         }
+        where noScratchPad ws = if ws == "NSP" then "" else ws
+
