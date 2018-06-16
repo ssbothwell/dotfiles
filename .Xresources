@@ -81,15 +81,18 @@ XTerm*foregrund: 	      S_base2
 
 XTerm*renderFont:       True
 XTerm.vt100.faceName:   Meslo:style=Regular
-XTerm*faceSize:         10
+XTerm*faceSize:         12
 XTerm*utf8:             1
 
-URxvt.font:             xft:Meslo LG M:style=Regular:size=16
+URxvt.font:             xft:Meslo LG M:style=Regular:size=12
 URxvt.scrollBar:        false
 !!URxvt.depth:            32
 !!urxvt*background:       rgba:0000/0000/0200/c800
 !!urxvt*transparent:      true
 !!urxvt*shading:          30
+
+URxvt.keysym.C-0: command:\033]710;xft:Meslo LG M:style=Regular:size=20\007
+
 Xft.dpi:                90
 Xft.autohint:           0
 Xft.lcdfilter:          lcddefault

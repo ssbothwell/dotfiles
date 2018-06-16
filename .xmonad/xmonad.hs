@@ -3,7 +3,8 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig
-import XMonad.Util.NamedScratchpad
+--import XMonad.Util.NamedScratchpad
+import XMonad.Util.Scratchpad
 import XMonad.Layout.Spacing
 import XMonad.Layout.Gaps
 import XMonad.Actions.DynamicProjects
@@ -45,7 +46,8 @@ myLayouts = tiled ||| Full
 
 -- Launchers
 myBrowser  = "/usr/bin/firefox"
-myTerminal = "/home/solomon/.local/bin/st"      
+myTerminal = "/usr/bin/urxvt"      
+myTerminal' = "/home/solomon/.local/bin/st"      
 myLauncher = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
 myTrello   = "/usr/bin/surf www.trello.com"
 myPostman  = "/usr/bin/postman"
@@ -65,24 +67,24 @@ myManageHook = composeAll
 
 -- Scratchpads
 
-myScratchPads = [ NS "terminal" spawnTerm  findTerm manageTerm
-                , NS "postman"  spawnPostman findPostman managePostman
-                ]
-
-    where spawnTerm     = myTerminal ++ " -name scratchpad"
-          findTerm      = resource =?   "scratchpad"
-          manageTerm    = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
-          spawnPostman  = myPostman
-          findPostman   = className =? "postman"
-          managePostman = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
+--myScratchPads = [ NS "terminal" spawnTerm  findTerm manageTerm
+--                , NS "postman"  spawnPostman findPostman managePostman
+--                ]
+--
+--    where spawnTerm     = myTerminal ++ " -name scratchpad"
+--          findTerm      = resource =?   "scratchpad"
+--          manageTerm    = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
+--          spawnPostman  = myPostman
+--          findPostman   = className =? "postman"
+--          managePostman = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
           
---manageScratchPad :: ManageHook
---manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
---  where
---    h = 0.8     -- terminal height, 10%
---    w = 0.6     -- terminal width, 60%
---    t = 0.1     -- distance from top edge, 10%
---    l = 0.2     -- distance from left edge, 40%
+manageScratchPad :: ManageHook
+manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
+  where
+    h = 0.8     -- terminal height, 10%
+    w = 0.6     -- terminal width, 60%
+    t = 0.1     -- distance from top edge, 10%
+    l = 0.2     -- distance from left edge, 40%
 
 -- Projects
 projects :: [Project]
@@ -138,8 +140,8 @@ myKeys = \c -> mkKeymap c $
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-<Backspace>")          , kill)                           -- Close focused window.
     , (("M-`")                    , terminalScratchpad)             -- Scratchpad Terminal
-    , (("M-r")                    , postmanScratchpad)              -- Scratchpad Postman
-    , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    --, (("M-r")                    , postmanScratchpad)              -- Scratchpad Postman
+    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
     , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
@@ -159,8 +161,9 @@ myKeys = \c -> mkKeymap c $
             volumeUp           = spawn "amixer set Master 10%+"
             volumeDown         = spawn "amixer set Master 10%-"
             recompile          = spawn "xmonad --recompile && xmonad --restart"
-            terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
-            postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
+            terminalScratchpad = scratchpadSpawnActionTerminal myTerminal
+            --terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
+            --postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
             projectPrompt      = switchProjectPrompt promptConfig
 
 -- Mouse Bindings
@@ -177,7 +180,7 @@ main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
     xmonad $ docks $ dynamicProjects projects def
         { layoutHook            = avoidStruts $ myLayoutHook
-        , manageHook            = myManageHook <+> manageHook def <+> namedScratchpadManageHook myScratchPads   
+        , manageHook            = myManageHook <+> manageHook def <+> manageScratchPad -- namedScratchpadManageHook myScratchPads   
         , logHook               = dynamicLogWithPP xmobarPP
             { ppOutput          = hPutStrLn xmproc
             , ppLayout          = (\x -> drop 10 x)

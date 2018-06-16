@@ -62,6 +62,7 @@ au BufNewFile,BufRead *.hs set textwidth=79
 au BufNewFile,BufRead *.hs set expandtab
 au BufNewFile,BufRead *.hs set autoindent
 au BufNewFile,BufRead *.hs set fileformat=unix
+
 " txt files
 autocmd BufNewFile,BufRead *.txt set tw=72
 
@@ -89,6 +90,12 @@ map <Leader>] :bnext<CR>
 map <Leader>[ :bprevious<CR>
 " select all text in buffer
 map <Leader>a ggVG
+
+" Right/Left Arrows
+imap <c-l> <space>→
+imap <c-h> <space>← 
+
+
 " Map :W to :w and :Q to :q
 if has("user_commands")
     command! -bang -nargs=? -complete=file E e<bang> <args>
@@ -126,6 +133,8 @@ let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
 "let g:ycm_python_binary_path = '/usr/local/bin/python'
 nnoremap <Leader>j :YcmCompleter GoTo <CR>
+
+command! -register JsDoc call jsdoc#insert()
 
 " Solarized
 let g:solarized_termtrans = 1

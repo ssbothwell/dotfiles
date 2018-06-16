@@ -9,8 +9,11 @@ MAGENTA="$(tput setaf 5)"
 CYAN="$(tput setaf 6)"
 WHITE="$(tput setaf 7)"
 
+BOLD="$(tput bold)"
+NORMAL="$(tput sgr0)"
+
 # PROMPT
-PS1='\[${MAGENTA}\]\u@\h \[${YELLOW}\]\W \$ '
+PS1='\[${YELLOW}\]\W λ '
 
 # VI mode
 set -o vi
@@ -22,7 +25,7 @@ fi
 alias ls='ls --color=auto'
 
 # PATH additions
-export PATH="${HOME}/.bin:${PATH}:~/.node_modules/bin:~/.local/bin"
+export PATH="${HOME}/.bin:${PATH}:~/.node_modules/bin:~/.local/bin:~/.xmonad"
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim
@@ -40,3 +43,8 @@ if [ -f '/home/solomon/google-cloud-sdk/completion.bash.inc' ]; then source '/ho
 
 # Set up Node Version Manager
 source /usr/share/nvm/init-nvm.sh
+
+# Xmonad dir defaults
+export XMONAD_DATA_DIR="$HOME/.xmonad"
+export XMONAD_CACHE_DIR="$HOME/.xmonad"
+export XMONAD_CONFIG_DIR="$HOME/.xmonad"
