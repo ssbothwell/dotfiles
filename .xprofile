@@ -4,7 +4,6 @@ export PATH="${PATH}:~/.local/bin:~/.xmonad"
 
 light-locker &
 stalonetray &
-#wicd-client -t &
 nm-applet &
 udiskie --tray --use-udisks2 &
 $HOME/.bin/init-keyboard.sh

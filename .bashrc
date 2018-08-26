@@ -13,7 +13,7 @@ BOLD="$(tput bold)"
 NORMAL="$(tput sgr0)"
 
 # PROMPT
-PS1='\[${YELLOW}\]\W λ '
+PS1='\W λ '
 
 # VI mode
 set -o vi
@@ -25,7 +25,7 @@ fi
 alias ls='ls --color=auto'
 
 # PATH additions
-export PATH="${HOME}/.bin:${PATH}:~/.node_modules/bin:~/.local/bin:~/.xmonad"
+export PATH="${HOME}/.bin:${PATH}:${HOME}/.node_modules/bin:${HOME}/.local/bin:${HOME}/.xmonad"
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim
@@ -45,6 +45,6 @@ if [ -f '/home/solomon/google-cloud-sdk/completion.bash.inc' ]; then source '/ho
 source /usr/share/nvm/init-nvm.sh
 
 # Xmonad dir defaults
-export XMONAD_DATA_DIR="$HOME/.xmonad"
-export XMONAD_CACHE_DIR="$HOME/.xmonad"
-export XMONAD_CONFIG_DIR="$HOME/.xmonad"
+export XMONAD_DATA_DIR="${HOME}/.xmonad"
+export XMONAD_CACHE_DIR="${HOME}/.xmonad"
+export XMONAD_CONFIG_DIR="${HOME}/.xmonad"

@@ -37,7 +37,7 @@
 #define S_green         #859900
 
 *background:            S_base03
-*foreground:            S_base00
+*foreground:            S_base0
 *fading:                40
 *fadeColor:             S_base03
 *cursorColor:           S_base1
@@ -74,16 +74,9 @@
 
 !! white dark/light
 *color7:                S_base2
-*color15:		S_base3
+*color15:		            S_base3
 
-XTerm*background:	      S_base03
-XTerm*foregrund: 	      S_base2
-
-XTerm*renderFont:       True
-XTerm.vt100.faceName:   Meslo:style=Regular
-XTerm*faceSize:         12
-XTerm*utf8:             1
-
+urxvt*dynamicColors:    on
 URxvt.font:             xft:Meslo LG M:style=Regular:size=12
 URxvt.scrollBar:        false
 !!URxvt.depth:            32
@@ -91,7 +84,15 @@ URxvt.scrollBar:        false
 !!urxvt*transparent:      true
 !!urxvt*shading:          30
 
-URxvt.keysym.C-0: command:\033]710;xft:Meslo LG M:style=Regular:size=20\007
+
+URxvt.perl-ext-common:  ...,font-size
+URxvt.keysym.C-equal:   font-size:increase
+URxvt.keysym.C--:       font-size:decrease
+URxvt.keysym.C-0:       font-size:reset
+
+!URxvt.keysym.C-9: command:\033]11;S_base3\007
+URxvt.keysym.C-8: command:\033]10;S_base00\007
+
 
 Xft.dpi:                90
 Xft.autohint:           0

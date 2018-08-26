@@ -8,6 +8,10 @@ set autoindent
 set path+=** 
 " set swp directory
 set directory^=$HOME/.vim/tmp// 
+" System Copy
+vnoremap <C-c> "*y :let @+=@*<CR>
+" System Paste
+"map <C-v> "+P
 " Allow backspacing through autoindents
 set backspace=indent,eol,start 
 " UTF8 
@@ -92,8 +96,8 @@ map <Leader>[ :bprevious<CR>
 map <Leader>a ggVG
 
 " Right/Left Arrows
-imap <c-l> <space>→
-imap <c-h> <space>← 
+imap <c-l> <space>->
+imap <c-h> <space><- 
 
 
 " Map :W to :w and :Q to :q
