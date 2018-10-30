@@ -1,56 +1,151 @@
 import XMonad
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
-import XMonad.Util.Run(spawnPipe)
+
 import XMonad.Util.EZConfig
 --import XMonad.Util.NamedScratchpad
+import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.Scratchpad
-import XMonad.Layout.Spacing
-import XMonad.Layout.Gaps
-import XMonad.Actions.DynamicProjects
-import XMonad.Prompt
+
+import XMonad.Layout.Accordion
+import XMonad.Layout.BinarySpacePartition
+import XMonad.Layout.Hidden
+import XMonad.Layout.LayoutCombinators hiding ( (|||) )
+import XMonad.Layout.MultiToggle
+import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
+import XMonad.Layout.NoFrillsDecoration
+import XMonad.Layout.PerScreen
+import XMonad.Layout.ResizableTile -- Resizable Horizontal border
+import XMonad.Layout.Renamed
+import XMonad.Layout.Gaps
+import XMonad.Layout.Simplest
+import XMonad.Layout.Spacing
+import XMonad.Layout.SubLayouts
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ThreeColumns
+import XMonad.Layout.WindowNavigation
+
+import XMonad.Actions.CycleWS
+import XMonad.Actions.DynamicProjects
+import XMonad.Actions.Navigation2D
+
+import qualified XMonad.StackSet as W
+import XMonad.Prompt
+
 import System.IO
 import System.Exit
-import qualified Data.Map               as M
-import qualified XMonad.StackSet        as W
+import qualified Data.Map        as M
 import Data.Char (toLower)
 import Data.List (isInfixOf)
 
+
+-----------------------------------------------------
+----------------------- Theme -----------------------
+-----------------------------------------------------
+
+base03  = "#002b36"
+base02  = "#073642"
+base01  = "#586e75"
+base00  = "#657b83"
+base0   = "#839496"
+base1   = "#93a1a1"
+base2   = "#eee8d5"
+base3   = "#fdf6e3"
+yellow  = "#b58900"
+orange  = "#cb4b16"
+red     = "#dc322f"
+magenta = "#d33682"
+violet  = "#6c71c4"
+blue    = "#268bd2"
+cyan    = "#2aa198"
+green   = "#859900"
+
+active       = blue
+activeWarn   = red
+inactive     = base02
+focusColor   = blue
+unfocusColor = base02
+
+myFont = "xft:Meslo LG M:style=Regular:size=12"
+myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
+myWideFont  = "xft:Eurostar Black Extended:style=Regular:pixelsize=180:hinting=true"
 
 -- Border Colors
 myNormalBorderColor = "#585858"
 myFocusedBorderColor = "#d70000"
 
--- Gap Widths
-gapwidth = 4
-gwU = 8
-gwD = 8
-gwL = 8
-gwR = 8
+myTabTheme = def
+    { fontName              = myFont
+    , activeColor           = active
+    , inactiveColor         = base02
+    , activeBorderColor     = active
+    , inactiveBorderColor   = base02
+    , activeTextColor       = base03
+    , inactiveTextColor     = base00
+}
 
---Gaps
-myLayoutHook = spacing gapwidth $ gaps [(U, gwU),(D, gwD),(L, gwL),(R, gwR)] $ myLayouts
+topBarTheme = def
+    { fontName              = myFont
+    , inactiveBorderColor   = base03
+    , inactiveColor         = base03
+    , inactiveTextColor     = base03
+    , activeBorderColor     = active
+    , activeColor           = active
+    , activeTextColor       = active
+    , urgentBorderColor     = red
+    , urgentTextColor       = yellow
+    , decoHeight            = topbar
+}
 
--- Layouts
-myLayouts = tiled ||| Full
-  where
-    -- default tiling algorithm partitions the screen into two panes
-    tiled   = Tall nmaster delta ratio
-    -- The default number of windows in the master pane
-    nmaster = 1
-    -- Default proportion of screen occupied by master pane
-    ratio   = 1/2
-    -- Percent of screen to increment by when resizing panes
-    delta   = 3/100
+-----------------------------------------------------
+---------------------- Layouts ----------------------
+-----------------------------------------------------
+
+-- sizes
+gap    = 10
+topbar = 10
+border = 0
+prompt = 20
+status = 20
+
+mySpacing = spacing gap
+myGaps = gaps [(U, gap),(D, gap),(L, gap),(R, gap)]
+
+myLayoutHook = fullScreenToggle $ spacingWithEdge 4 $ flex ||| tabs 
+    where
+        --addTopBar = noFrillsDeco shrinkText topBarTheme
+        fullScreenToggle = mkToggle $ single FULL
+        nmaster = 1 -- The default number of windows in the master pane
+        ratio   = 1/2 -- Default proportion of screen occupied by master pane
+        delta   = 3/100 -- Percent of screen to increment by when resizing panes
+        smallMonResWidth = 1920
+        trimNamed w n = 
+            renamed [(XMonad.Layout.Renamed.CutWordsLeft w), (XMonad.Layout.Renamed.PrependWords n)]
+        suffixed n = renamed [(XMonad.Layout.Renamed.AppendWords n)]
+        trimSuffixed w n = 
+            renamed [(XMonad.Layout.Renamed.CutWordsRight w), (XMonad.Layout.Renamed.AppendWords n)] 
+        threeCol = named "ThreeCol" $ ThreeColMid 1 (1/10) (1/2)
+        tabs = named "Tabs" $ addTabs shrinkText myTabTheme Simplest
+        flex = trimNamed 5 "Flex"
+            $ avoidStruts
+            $ windowNavigation
+            $ addTabs shrinkText myTabTheme
+            $ subLayout [] (Simplest ||| Accordion)
+            $ ifWider smallMonResWidth wideLayouts standardLayouts
+            where
+                wideLayouts = 
+                        (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
+                    ||| (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP )
+                standardLayouts = named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
 -- Launchers
-myBrowser  = "/usr/bin/firefox"
-myTerminal = "/usr/bin/urxvt"      
+myBrowser   = "/usr/bin/firefox"
+myTerminal  = "/usr/bin/urxvt"      
 myTerminal' = "/home/solomon/.local/bin/st"      
-myLauncher = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
-myTrello   = "/usr/bin/surf www.trello.com"
-myPostman  = "/usr/bin/postman"
+myLauncher  = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
+myTrello    = "/usr/bin/surf www.trello.com"
+myPostman   = "/usr/bin/postman"
 
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
@@ -65,7 +160,9 @@ myManageHook = composeAll
     , manageDocks  
     ]
 
--- Scratchpads
+-----------------------------------------------------
+-------------------- Scratchpads --------------------
+-----------------------------------------------------
 
 --myScratchPads = [ NS "terminal" spawnTerm  findTerm manageTerm
 --                , NS "postman"  spawnPostman findPostman managePostman
@@ -81,12 +178,15 @@ myManageHook = composeAll
 manageScratchPad :: ManageHook
 manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
   where
-    h = 0.8     -- terminal height, 10%
-    w = 0.6     -- terminal width, 60%
-    t = 0.1     -- distance from top edge, 10%
-    l = 0.2     -- distance from left edge, 40%
+    h = 0.8 -- terminal height, 10%
+    w = 0.6 -- terminal width, 60%
+    t = 0.1 -- distance from top edge, 10%
+    l = 0.2 -- distance from left edge, 40%
 
--- Projects
+-----------------------------------------------------
+--------------------- Projects ----------------------
+-----------------------------------------------------
+
 projects :: [Project]
 projects =
     [ Project { projectName      = "haskell-book"
@@ -99,7 +199,6 @@ projects =
               , projectStartHook = Just $ do spawn "urxvt"
                                              spawn "urxvt"
               }
-
     ]
 
 -- A case-insensitive substring predicate function.
@@ -122,49 +221,82 @@ promptConfig = def
   , promptKeymap      = emacsLikeXPKeymap
   , searchPredicate   = predicateFunction
 }
-------------------------------------------------------------
 
--- Keybindings
-myKeys = \c -> mkKeymap c $ 
+-----------------------------------------------------
+-------------------- Keybindings --------------------
+-----------------------------------------------------
 
+workSpaceNav :: XConfig a -> [(String, X ())]
+workSpaceNav c = do
     -- mod-[1..9], Switch to workspace N
     -- mod-shift-[1..9], Move client to workspace N
-    [ (m ++ i, windows $ f j)
-        | (i, j) <- zip (map show [1..9]) (XMonad.workspaces c)
-        , (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)] --Shift wndw to ws
-    ]
-    ++
+    (i, j) <- zip (map show [1..9]) $ XMonad.workspaces c
+    (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)]
+    return (m++i, windows $ f j)
+
+myKeys c = mkKeymap c $
+    ------------------------------
+    -- System
+    ------------------------------
+    [ (("M-q")                    , recompile)                      -- Restart Xmonad
+    , (("M-S-q")                  , io (exitWith ExitSuccess))      -- Quit xmonad
+    , (("M-<Backspace>")          , kill)                           -- Close focused window.
+    , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
+    , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
+    , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
+    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    ] ++
+
+    ------------------------------
+    -- Navigation
+    ------------------------------
+    -- Navigate between windows
+    [ (("M-j")                    , windowGo D False)
+    , (("M-k")                    , windowGo U False)
+    , (("M-h")                    , windowGo L False)
+    , (("M-l")                    , windowGo R False)
+    -- Swap adjacent windows
+    , (("M-S-j")                  , windowSwap D False)
+    , (("M-S-k")                  , windowSwap U False)
+    , (("M-S-h")                  , windowSwap L False)
+    , (("M-S-l")                  , windowSwap R False)
+    -- Shrink/Expand windows
+    , (("M-[")                    , sendMessage Shrink)
+    , (("M-]")                    , sendMessage Expand)
+    , (("M-<Space>")              , sendMessage NextLayout)
+    -- Sink floated window
+    , (("M-t")                    , withFocused $ windows . W.sink)
+    -- Full Screen a window
+    , (("M-<F11>")                , sendMessage $ Toggle FULL)
+    ] ++ workSpaceNav c ++
+
+    ------------------------------
+    -- Launchers
+    ------------------------------
     [ (("M-<Return>")             , spawn myTerminal)               -- Launch Terminal
     , (("M-\\")                   , spawn myBrowser)                -- Launch Browser
     , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
-    , (("M-<Backspace>")          , kill)                           -- Close focused window.
     , (("M-`")                    , terminalScratchpad)             -- Scratchpad Terminal
     --, (("M-r")                    , postmanScratchpad)              -- Scratchpad Postman
-    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
-    , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
-    , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
-    , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
-    , (("M-q")                    , recompile)                      -- Restart Xmonad
-    , (("M-S-q")                  , io (exitWith ExitSuccess))      -- Quit xmonad
-    , (("M-j")                    , windows W.focusDown)            -- Move focus to the next window.
-    , (("M-k")                    , windows W.focusUp)              -- Move focus to the previous window.
-    , (("M-S-j")                  , windows W.swapDown)             -- Swap the focused window with the next window.
-    , (("M-S-k")                  , windows W.swapUp)               -- Swap the focused window with the previous window.
-    , (("M-h")                    , sendMessage Shrink)             -- Shrink the master area.
-    , (("M-l")                    , sendMessage Expand)             -- Expand the master area.
-    , (("M-<Space>")              , sendMessage NextLayout)         -- Cycle through the available layout algorithms.
-    , (("M-t")                    , withFocused $ windows . W.sink) -- Push window back into tiling
     ]
-      where 
-            toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
-            volumeUp           = spawn "amixer set Master 10%+"
-            volumeDown         = spawn "amixer set Master 10%-"
-            recompile          = spawn "xmonad --recompile && xmonad --restart"
-            terminalScratchpad = scratchpadSpawnActionTerminal myTerminal
-            --terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
-            --postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
-            projectPrompt      = switchProjectPrompt promptConfig
+    where 
+        toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
+        volumeUp           = spawn "amixer set Master 10%+"
+        volumeDown         = spawn "amixer set Master 10%-"
+        recompile          = spawn "xmonad --recompile && xmonad --restart"
+        terminalScratchpad = scratchpadSpawnActionTerminal myTerminal
+        --terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
+        --postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
+        projectPrompt      = switchProjectPrompt promptConfig
+
+myNav2DConf = def
+    { defaultTiledNavigation = centerNavigation
+    , floatNavigation        = centerNavigation
+    , screenNavigation       = lineNavigation
+    , layoutNavigation       = pure ("Full", centerNavigation)
+    , unmappedWindowRect     = pure ("Full", singleWindowRect)
+    }
 
 -- Mouse Bindings
 myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
@@ -175,18 +307,21 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
                                        >> windows W.shiftMaster)) -- Set window to float and resize by dragging
     ]
  
+-----------------------------------------------------
+------------------------ Main -----------------------
+-----------------------------------------------------
 
 main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
-    xmonad $ docks $ dynamicProjects projects def
-        { layoutHook            = avoidStruts $ myLayoutHook
-        , manageHook            = myManageHook <+> manageHook def <+> manageScratchPad -- namedScratchpadManageHook myScratchPads   
+    xmonad . docks . dynamicProjects projects . withNavigation2DConfig myNav2DConf $ def
+        { layoutHook            = avoidStruts myLayoutHook
+        , manageHook            = myManageHook <+> manageHook def <+> manageScratchPad
         , logHook               = dynamicLogWithPP xmobarPP
             { ppOutput          = hPutStrLn xmproc
-            , ppLayout          = (\x -> drop 10 x)
+            , ppLayout          = \x -> drop 18 x
             , ppTitle           = xmobarColor "green" "" . shorten 150
             , ppHidden          = noScratchPad
-            , ppHiddenNoWindows = (\x -> "")
+            , ppHiddenNoWindows = \_ -> ""
             }
         , modMask               = mod4Mask
         , keys                  = myKeys
@@ -196,4 +331,3 @@ main = do
         , focusedBorderColor    = myFocusedBorderColor
         }
         where noScratchPad ws = if ws == "NSP" then "" else ws
-
