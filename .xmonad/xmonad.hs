@@ -104,7 +104,7 @@ topBarTheme = def
 -----------------------------------------------------
 
 -- sizes
-gap    = 10
+gap    = 4
 topbar = 10
 border = 0
 prompt = 20
@@ -128,18 +128,17 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
             renamed [(XMonad.Layout.Renamed.CutWordsRight w), (XMonad.Layout.Renamed.AppendWords n)] 
         threeCol = named "ThreeCol" $ ThreeColMid 1 (1/10) (1/2)
         tabs = named "Tabs" $ addTabs shrinkText myTabTheme Simplest
-        flex = spacingWithEdge 4 
-             $ trimNamed 5 "Flex"
+        flex = trimNamed 5 "Flex"
              $ avoidStruts
              $ windowNavigation
              $ addTabs shrinkText myTabTheme
              $ subLayout [] (Simplest ||| Accordion)
              $ ifWider smallMonResWidth wideLayouts standardLayouts
              where
-                 wideLayouts = 
+                 wideLayouts = mySpacing $ myGaps $
                          (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
                      ||| (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP )
-                 standardLayouts = named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
+                 standardLayouts = mySpacing $ myGaps $ named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
 -- Launchers
 myBrowser   = "/usr/bin/firefox"
