@@ -16,7 +16,7 @@ import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.PerScreen
-import XMonad.Layout.ResizableTile -- Resizable Horizontal border
+import XMonad.Layout.ResizableTile
 import XMonad.Layout.Renamed
 import XMonad.Layout.Gaps
 import XMonad.Layout.Simplest
@@ -28,6 +28,7 @@ import XMonad.Layout.WindowNavigation
 
 import XMonad.Actions.CycleWS
 import XMonad.Actions.DynamicProjects
+import XMonad.Actions.Promote
 import XMonad.Actions.Navigation2D
 
 import qualified XMonad.StackSet as W
@@ -112,7 +113,7 @@ status = 20
 mySpacing = spacing gap
 myGaps = gaps [(U, gap),(D, gap),(L, gap),(R, gap)]
 
-myLayoutHook = fullScreenToggle $ spacingWithEdge 4 $ flex ||| tabs 
+myLayoutHook = fullScreenToggle $ flex ||| tabs
     where
         --addTopBar = noFrillsDeco shrinkText topBarTheme
         fullScreenToggle = mkToggle $ single FULL
@@ -127,17 +128,18 @@ myLayoutHook = fullScreenToggle $ spacingWithEdge 4 $ flex ||| tabs
             renamed [(XMonad.Layout.Renamed.CutWordsRight w), (XMonad.Layout.Renamed.AppendWords n)] 
         threeCol = named "ThreeCol" $ ThreeColMid 1 (1/10) (1/2)
         tabs = named "Tabs" $ addTabs shrinkText myTabTheme Simplest
-        flex = trimNamed 5 "Flex"
-            $ avoidStruts
-            $ windowNavigation
-            $ addTabs shrinkText myTabTheme
-            $ subLayout [] (Simplest ||| Accordion)
-            $ ifWider smallMonResWidth wideLayouts standardLayouts
-            where
-                wideLayouts = 
-                        (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
-                    ||| (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP )
-                standardLayouts = named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
+        flex = spacingWithEdge 4 
+             $ trimNamed 5 "Flex"
+             $ avoidStruts
+             $ windowNavigation
+             $ addTabs shrinkText myTabTheme
+             $ subLayout [] (Simplest ||| Accordion)
+             $ ifWider smallMonResWidth wideLayouts standardLayouts
+             where
+                 wideLayouts = 
+                         (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
+                     ||| (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP )
+                 standardLayouts = named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
 -- Launchers
 myBrowser   = "/usr/bin/firefox"
@@ -186,7 +188,7 @@ manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
 -----------------------------------------------------
 --------------------- Projects ----------------------
 -----------------------------------------------------
-
+-- Work In Progress --
 projects :: [Project]
 projects =
     [ Project { projectName      = "haskell-book"
@@ -255,6 +257,9 @@ myKeys c = mkKeymap c $
     , (("M-k")                    , windowGo U False)
     , (("M-h")                    , windowGo L False)
     , (("M-l")                    , windowGo R False)
+    -- Navigate between tabs
+    , (("M-;")                    ,  windows W.focusUp)
+    , (("M-'")                    ,  windows W.focusDown)
     -- Swap adjacent windows
     , (("M-S-j")                  , windowSwap D False)
     , (("M-S-k")                  , windowSwap U False)
@@ -268,6 +273,15 @@ myKeys c = mkKeymap c $
     , (("M-t")                    , withFocused $ windows . W.sink)
     -- Full Screen a window
     , (("M-<F11>")                , sendMessage $ Toggle FULL)
+    -- Promote window to master
+    , (("M-b")                    , promote)
+    -- "merge with sublayout"
+    , (("M-C-h")                  , sendMessage . pullGroup $ L)
+    , (("M-C-l")                  , sendMessage . pullGroup $ R)
+    , (("M-C-j")                  , sendMessage . pullGroup $ D)
+    , (("M-C-k")                  , sendMessage . pullGroup $ U)
+    -- Unmerge a window
+    , (("M-g")                    , withFocused (sendMessage . UnMerge))
     ] ++ workSpaceNav c ++
 
     ------------------------------
