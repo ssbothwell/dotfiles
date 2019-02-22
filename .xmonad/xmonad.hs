@@ -33,6 +33,8 @@ import XMonad.Actions.Navigation2D
 
 import qualified XMonad.StackSet as W
 import XMonad.Prompt
+import XMonad.Prompt.ConfirmPrompt
+import XMonad.Prompt.Unicode
 
 import System.IO
 import System.Exit
@@ -69,8 +71,6 @@ focusColor   = blue
 unfocusColor = base02
 
 myFont = "xft:Meslo LG M:style=Regular:size=12"
-myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
-myWideFont  = "xft:Eurostar Black Extended:style=Regular:pixelsize=180:hinting=true"
 
 -- Border Colors
 myNormalBorderColor = "#585858"
@@ -135,18 +135,19 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
              $ subLayout [] (Simplest ||| Accordion)
              $ ifWider smallMonResWidth wideLayouts standardLayouts
              where
-                 wideLayouts = mySpacing $ myGaps $
+                 wideLayouts = mySpacing . myGaps $
                          (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
                      ||| (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP )
                  standardLayouts = mySpacing $ myGaps $ named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
 -- Launchers
-myBrowser   = "/usr/bin/firefox"
-myTerminal  = "/usr/bin/urxvt"      
-myTerminal' = "/home/solomon/.local/bin/st"      
-myLauncher  = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
-myTrello    = "/usr/bin/surf www.trello.com"
-myPostman   = "/usr/bin/postman"
+myBrowser      = "/usr/bin/firefox"
+myTerminal     = "/usr/bin/konsole"      
+myTerminal'    = "/home/solomon/.local/bin/st"      
+myLauncher     = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
+scriptLauncher = "/home/solomon/.bin/scriptLauncher.py"
+myTrello       = "/usr/bin/surf www.trello.com"
+myPostman      = "/usr/bin/postman"
 
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
@@ -202,6 +203,11 @@ projects =
               }
     ]
 
+
+-----------------------------------------------------
+---------------------- Prompt -----------------------
+-----------------------------------------------------
+
 -- A case-insensitive substring predicate function.
 predicateFunction :: String -> String -> Bool
 predicateFunction x y = lc x `isInfixOf` lc y where lc = map toLower
@@ -209,19 +215,23 @@ predicateFunction x y = lc x `isInfixOf` lc y where lc = map toLower
 promptConfig :: XPConfig
 promptConfig = def
   { position          = CenteredAt (1/3) (1/2)
-  , height            = 35
-  , font              = "xft:dejavu sans mono:size=14"
+  , height            = 30
+  , font              = "xft:dejavu sans mono:size=12"
   , bgColor           = "#002b36"
   , fgColor           = "#93a1a1"
   , fgHLight          = "#d33682"
   , bgHLight          = "#073642"
-  , borderColor       = "#053542"
-  , promptBorderWidth = 5
+  , borderColor       = red
+  , promptBorderWidth = 1
   , maxComplRows      = Just 12
   , alwaysHighlight   = True
   , promptKeymap      = emacsLikeXPKeymap
   , searchPredicate   = predicateFunction
 }
+
+projectPrompt     = switchProjectPrompt promptConfig
+closeWindowPrompt = confirmPrompt promptConfig "Close Window" $ kill
+closeXmonadPrompt = confirmPrompt promptConfig "Exit XMonad" $ io (exitWith ExitSuccess)
 
 -----------------------------------------------------
 -------------------- Keybindings --------------------
@@ -239,13 +249,15 @@ myKeys c = mkKeymap c $
     ------------------------------
     -- System
     ------------------------------
-    [ (("M-q")                    , recompile)                      -- Restart Xmonad
-    , (("M-S-q")                  , io (exitWith ExitSuccess))      -- Quit xmonad
-    , (("M-<Backspace>")          , kill)                           -- Close focused window.
+    [ (("M-q")                    , recompile)                      -- Recompile Xmonad
+    , (("M-S-q")                  , closeXmonadPrompt)              -- Close Xmonad
+    , (("M-<Backspace>")          , closeWindowPrompt)              -- Close Window
     , (("<XF86AudioMute>")        , toggleMute)                     -- Mute/Unmute amixer
     , (("<XF86AudioRaiseVolume>") , volumeUp)                       -- Increase amixer volume
     , (("<XF86AudioLowerVolume>") , volumeDown)                     -- Decrease amixer volume
-    --, (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    , (("M-i")                    , projectPrompt)                  -- dynamicProjects prompt
+    -- Emoji Insert Prompt :: NOT WORKING
+    , (("M-u")                    , unicodePrompt "~/.bin/unicode" promptConfig)
     ] ++
 
     ------------------------------
@@ -259,6 +271,9 @@ myKeys c = mkKeymap c $
     -- Navigate between tabs
     , (("M-;")                    ,  windows W.focusUp)
     , (("M-'")                    ,  windows W.focusDown)
+    -- Shift tabs
+    , (("M-S-;")                  ,  windows W.swapUp)
+    , (("M-S-'")                  ,  windows W.swapDown)
     -- Swap adjacent windows
     , (("M-S-j")                  , windowSwap D False)
     , (("M-S-k")                  , windowSwap U False)
@@ -289,9 +304,9 @@ myKeys c = mkKeymap c $
     [ (("M-<Return>")             , spawn myTerminal)               -- Launch Terminal
     , (("M-\\")                   , spawn myBrowser)                -- Launch Browser
     , (("M-p")                    , spawn myLauncher)               -- Launch DMenu
+    , (("M-C-p")                  , spawn scriptLauncher)           -- Script Launcher
     , (("M-o")                    , spawn myTrello)                 -- Launch Trello
     , (("M-`")                    , terminalScratchpad)             -- Scratchpad Terminal
-    --, (("M-r")                    , postmanScratchpad)              -- Scratchpad Postman
     ]
     where 
         toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
@@ -301,7 +316,6 @@ myKeys c = mkKeymap c $
         terminalScratchpad = scratchpadSpawnActionTerminal myTerminal
         --terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
         --postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
-        projectPrompt      = switchProjectPrompt promptConfig
 
 myNav2DConf = def
     { defaultTiledNavigation = centerNavigation

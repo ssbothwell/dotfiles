@@ -77,7 +77,7 @@
 *color15:		            S_base3
 
 urxvt*dynamicColors:    on
-URxvt.font:             xft:Meslo LG M:style=Regular:size=12
+URxvt.font:             xft:Meslo LG M:style=Regular:size=12, xft:Noto Emoji
 URxvt.scrollBar:        false
 !!URxvt.depth:            32
 !!urxvt*background:       rgba:0000/0000/0200/c800
@@ -85,13 +85,13 @@ URxvt.scrollBar:        false
 !!urxvt*shading:          30
 
 
-URxvt.perl-ext-common:  ...,font-size
+URxvt.perl-ext-common:  ...,font-size, selection-to-clipboard
 URxvt.keysym.C-equal:   font-size:increase
 URxvt.keysym.C--:       font-size:decrease
 URxvt.keysym.C-0:       font-size:reset
 
-!URxvt.keysym.C-9: command:\033]11;S_base3\007
-URxvt.keysym.C-8: command:\033]10;S_base00\007
+URxvt.keysym.C-9: command:\033]11;S_base3\007
+!URxvt.keysym.C-8: command:\033]10;S_base00\007
 
 
 Xft.dpi:                90

@@ -24,8 +24,15 @@ if [ -f ~/.dir_colors ]; then
 fi
 alias ls='ls --color=auto'
 
-# PATH additions
-export PATH="${HOME}/.bin:${PATH}:${HOME}/.node_modules/bin:${HOME}/.local/bin:${HOME}/.xmonad"
+# PATH
+SCRIPTS="${HOME}/.bin"
+LOCAL="${HOME}/.local/bin"
+GEM="${HOME}/.gem/ruby/2.5.0/bin"
+NODE="${HOME}/.node_modules/bin"
+XMONAD="${HOME}/.xmonad"
+
+export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}"
+#export PATH="${HOME}/.bin:${PATH}:${HOME}/.node_modules/bin:${HOME}/.local/bin:${HOME}/.xmonad"
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim
@@ -35,12 +42,6 @@ export EDITOR="$VISUAL"
 stty -ixon
 source /usr/bin/activate.sh
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/home/solomon/google-cloud-sdk/path.bash.inc' ]; then source '/home/solomon/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/home/solomon/google-cloud-sdk/completion.bash.inc' ]; then source '/home/solomon/google-cloud-sdk/completion.bash.inc'; fi
-
 # Set up Node Version Manager
 source /usr/share/nvm/init-nvm.sh
 
@@ -48,3 +49,11 @@ source /usr/share/nvm/init-nvm.sh
 export XMONAD_DATA_DIR="${HOME}/.xmonad"
 export XMONAD_CACHE_DIR="${HOME}/.xmonad"
 export XMONAD_CONFIG_DIR="${HOME}/.xmonad"
+
+alias mutt=neomutt
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/solomon/.google-cloud-sdk/path.bash.inc' ]; then . '/home/solomon/.google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/solomon/.google-cloud-sdk/completion.bash.inc' ]; then . '/home/solomon/.google-cloud-sdk/completion.bash.inc'; fi

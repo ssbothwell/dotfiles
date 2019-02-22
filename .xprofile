@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH="${PATH}:~/.local/bin:~/.xmonad"
+export PATH="${PATH}:${HOME}/.local/bin:${HOME}/.xmonad"
 
 light-locker &
 stalonetray &
@@ -9,3 +9,4 @@ udiskie --tray --use-udisks2 &
 $HOME/.bin/init-keyboard.sh
 xsetroot -solid "#002b36"
 xbanish &
+blueberry-tray &
