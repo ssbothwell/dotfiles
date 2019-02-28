@@ -1,20 +1,18 @@
-Config { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true,FontAwesome:size=12"
-       , allDesktops  = True    -- show on all desktops
-       , pickBroadest = True   -- choose widest display (multi-monitor)
-       , bgColor      = "#002B36"
-       , fgColor      = "#585858"
-       , position     = Static { xpos = 0, ypos = 3, width = 1820, height = 20 } --TopW L 95
-       , commands     = [ Run StdinReader
-                        , Run DiskU [("/"," <used>i/<size>")]
-                                    ["-L","20","-H","50","-m","1","-p","3"]
-                                    20
-                        , Run Volume "default" "Master" [ "-t", "<status> <volume>%"
-                                                        , "--", "-O", "", "-o", "" 
-                                                        , "-C", "#585858"
-                                                        ]
-                                                        1
-                        , Run Com "/home/solomon/.bin/getBattery.py" [] "battery" 100
-
-                        ]
-       , template     = "%StdinReader% }{ %disku% %default:Master% %battery% <fc=#ee9a00>%date%</fc>"
-       }
+Config
+    { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true,FontAwesome:size=12"
+    , allDesktops  = True -- show on all desktops
+    , pickBroadest = True -- choose widest display (multi-monitor)
+    , bgColor      = "#002B36"
+    , fgColor      = "#585858"
+    , position     = Static { xpos = 0, ypos = 3, width = 1845, height = 20 } --TopW L 95
+    , commands     =
+        [ Run StdinReader
+        , Run DiskU [("/"," <used>i/<size>")] ["-L","20","-H","50","-m","1","-p","3"] 20
+        , Run Volume "default" "Master"
+            [ "-t", "<status> <volume>%" , "--", "-O", "", "-o", "" , "-C", "#585858" ] 1
+        , Run Com "/home/solomon/.bin/getBattery.py" [] "battery" 100
+        , Run Date "<fc=#ee9a00>%a %b %_d %Y %I:%M %p</fc>" "date" 9
+        , Run Wireless "wlp4s0" [ "--template" , " <essid>" ] 10
+        ]
+    , template = "%StdinReader% }{ %disku% %default:Master% %battery% %wlp4s0wi% %date%"
+    }
