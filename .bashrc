@@ -29,10 +29,10 @@ SCRIPTS="${HOME}/.bin"
 LOCAL="${HOME}/.local/bin"
 GEM="${HOME}/.gem/ruby/2.5.0/bin"
 NODE="${HOME}/.node_modules/bin"
+YARN="${HOME}/.yarn/bin"
 XMONAD="${HOME}/.xmonad"
 
-export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}"
-#export PATH="${HOME}/.bin:${PATH}:${HOME}/.node_modules/bin:${HOME}/.local/bin:${HOME}/.xmonad"
+export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}"
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim
@@ -57,3 +57,10 @@ if [ -f '/home/solomon/.google-cloud-sdk/path.bash.inc' ]; then . '/home/solomon
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/solomon/.google-cloud-sdk/completion.bash.inc' ]; then . '/home/solomon/.google-cloud-sdk/completion.bash.inc'; fi
+
+# common path alias'
+alias tripp="cd ~/Development/trippinc/firebase-backend"
+alias trippfunc="cd ~/Development/trippinc/firebase-backend/Functions/src/GraphQL"
+
+# load fancy bash prompt
+. ~/.bash_prompt
