@@ -1,6 +1,6 @@
 Config
     { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true,FontAwesome:size=12"
-    , allDesktops  = True -- show on all desktops
+    , allDesktops  = False -- show on all desktops
     , pickBroadest = True -- choose widest display (multi-monitor)
     , bgColor      = "#002B36"
     , fgColor      = "#585858"
