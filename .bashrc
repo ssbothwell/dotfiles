@@ -8,20 +8,14 @@ BLUE="$(tput setaf 4)"
 MAGENTA="$(tput setaf 5)"
 CYAN="$(tput setaf 6)"
 WHITE="$(tput setaf 7)"
-
 BOLD="$(tput bold)"
 NORMAL="$(tput sgr0)"
-
-# PROMPT
-PS1='\W λ '
 
 # VI mode
 set -o vi
 
 # Colorize ls
-if [ -f ~/.dir_colors ]; then
-    eval `dircolors ~/.dir_colors`
-fi
+eval `dircolors`
 alias ls='ls --color=auto'
 
 # PATH
@@ -46,21 +40,27 @@ source /usr/bin/activate.sh
 source /usr/share/nvm/init-nvm.sh
 
 # Xmonad dir defaults
-export XMONAD_DATA_DIR="${HOME}/.xmonad"
-export XMONAD_CACHE_DIR="${HOME}/.xmonad"
-export XMONAD_CONFIG_DIR="${HOME}/.xmonad"
+export XMONAD_DATA_DIR=$XMONAD
+export XMONAD_CACHE_DIR=$XMONAD
+export XMONAD_CONFIG_DIR=$XMONAD
 
-alias mutt=neomutt
+# Update PATH for the Google Cloud SDK.
+if [ -f "${HOME}/.google-cloud-sdk/path.bash.inc" ]; then
+  . "${HOME}/.google-cloud-sdk/path.bash.inc";
+fi
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/home/solomon/.google-cloud-sdk/path.bash.inc' ]; then . '/home/solomon/.google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/home/solomon/.google-cloud-sdk/completion.bash.inc' ]; then . '/home/solomon/.google-cloud-sdk/completion.bash.inc'; fi
+# Shell command completion for gcloud.
+if [ -f "${HOME}/.google-cloud-sdk/completion.bash.inc" ]; then
+  . "${HOME}/.google-cloud-sdk/completion.bash.inc";
+fi
 
 # common path alias'
-alias tripp="cd ~/Development/trippinc/firebase-backend"
-alias trippfunc="cd ~/Development/trippinc/firebase-backend/Functions/src/GraphQL"
+alias tripp="cd ${HOME}/Development/trippinc/firebase-backend"
+alias trippfunc="cd ${HOME}/Development/trippinc/firebase-backend/Functions/src/GraphQL"
+alias mutt=neomutt
 
-# load fancy bash prompt
-. ~/.bash_prompt
+# Prompt
+PS1='\W λ '
+if [ -f ~/.bash_prompt ]; then
+  . ~/.bash_prompt
+fi
