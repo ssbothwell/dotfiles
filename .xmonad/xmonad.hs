@@ -1,25 +1,27 @@
 import XMonad
+
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicProperty
 import XMonad.Hooks.ManageDocks
 
 import XMonad.Util.EZConfig
---import XMonad.Util.NamedScratchpad
+import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.Scratchpad
 
 import XMonad.Layout.Accordion
 import XMonad.Layout.BinarySpacePartition
+import XMonad.Layout.Gaps
 import XMonad.Layout.Hidden
-import XMonad.Layout.LayoutCombinators hiding ( (|||) )
+import XMonad.Layout.LayoutCombinators hiding ((|||))
+import XMonad.Layout.LayoutModifier (ModifiedLayout)
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
-import XMonad.Layout.LayoutModifier (ModifiedLayout)
 import XMonad.Layout.Named
 import XMonad.Layout.NoFrillsDecoration
 import XMonad.Layout.PerScreen
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Renamed
-import XMonad.Layout.Gaps
 import XMonad.Layout.Simplest
 import XMonad.Layout.Spacing
 import XMonad.Layout.SubLayouts
@@ -29,8 +31,8 @@ import XMonad.Layout.WindowNavigation
 
 import XMonad.Actions.CycleWS
 import XMonad.Actions.DynamicProjects
-import XMonad.Actions.Promote
 import XMonad.Actions.Navigation2D
+import XMonad.Actions.Promote
 
 import qualified XMonad.StackSet as W
 import XMonad.Prompt
@@ -156,42 +158,63 @@ myLauncher     = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe
 scriptLauncher = "/home/solomon/.bin/scriptLauncher.py"
 myTrello       = "/usr/bin/surf www.trello.com"
 myPostman      = "/usr/bin/postman"
+mySpotify      = "/usr/bin/spotify"
 
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
 
 -- Window Rules
 myManageHook = composeAll
-    [ className =? "Wicd-client.py" --> doFloat
-    , className =? "postman"        --> doFloat
-    , className =? "Firefox"        --> doShift "2:web"
-    , className =? "Slack"          --> doShift "3:slack"
-    , className =? "stalonetray"    --> doIgnore
+    [ className =? "spotify"     --> doFloat
+    , className =? "Firefox"     --> doShift "2:web"
+    , className =? "Slack"       --> doShift "3:slack"
+    , className =? "stalonetray" --> doIgnore
     , manageDocks
     ]
+
 
 -----------------------------------------------------
 -------------------- Scratchpads --------------------
 -----------------------------------------------------
+-- TODO: Write a function calculate the tiling/padding for these scratchpads
+--  (W.RationalRect l t w h)
+--  where
+--    l = distance from left edge
+--    t = distance from top edge
+--    w = width
+--    h = height
 
---myScratchPads = [ NS "terminal" spawnTerm  findTerm manageTerm
---                , NS "postman"  spawnPostman findPostman managePostman
---                ]
---
---    where spawnTerm     = myTerminal ++ " -name scratchpad"
---          findTerm      = resource =?   "scratchpad"
---          manageTerm    = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
---          spawnPostman  = myPostman
---          findPostman   = className =? "postman"
---          managePostman = customFloating $ W.RationalRect 0.2 0.1 0.6 0.8
+terminalScratchpad :: NamedScratchpad
+terminalScratchpad = NS "terminal" spawnTerm queryBool floating
+    where spawnTerm = myTerminal ++ " -name scratchpad"
+          queryBool = resource   =? "scratchpad"
+          floating  = customFloating $ W.RationalRect 0.005 0.01 0.4925 0.98
+
+trelloScratchpad :: NamedScratchpad
+trelloScratchpad = NS "trello" myTrello queryBool floating
+    where queryBool = className =? "Surf"
+          floating  = customFloating $ W.RationalRect 0.5025 0.505 0.4925 0.485
+
+spotifyScratchpad :: NamedScratchpad
+spotifyScratchpad = NS "spotify" mySpotify queryBool doFloat
+    where queryBool = className =? "Spotify"
+
+myScratchPads :: [NamedScratchpad]
+myScratchPads = [ terminalScratchpad, spotifyScratchpad, trelloScratchpad ]
+
+actionToggleOverlay :: X ()
+actionToggleOverlay = mapM_ (namedScratchpadAction myScratchPads) ["terminal", "spotify", "trello"]
 
 manageScratchPad :: ManageHook
-manageScratchPad = scratchpadManageHook (W.RationalRect l t w h)
-  where
-    h = 0.8 -- terminal height, 10%
-    w = 0.6 -- terminal width, 60%
-    t = 0.1 -- distance from top edge, 10%
-    l = 0.2 -- distance from left edge, 40%
+manageScratchPad = namedScratchpadManageHook myScratchPads
+
+spotifyFloatHook :: Event -> X All
+spotifyFloatHook = dynamicPropertyChange "WM_NAME" (title =? "Spotify" --> floating)
+    where floating  = customFloating $ W.RationalRect 0.5025 0.01 0.4925 0.485
+
+myHandleEventHook :: Event -> X All
+myHandleEventHook = spotifyFloatHook
+
 
 -----------------------------------------------------
 --------------------- Projects ----------------------
@@ -313,8 +336,7 @@ myKeys c = mkKeymap c $
     , ("M-\\",       spawn myBrowser)      -- Launch Browser
     , ("M-p",        spawn myLauncher)     -- Launch DMenu
     , ("M-C-p",      spawn scriptLauncher) -- Script Launcher
-    , ("M-o",        spawn myTrello)       -- Launch Trello
-    , ("M-`",        terminalScratchpad)   -- Scratchpad Terminal
+    , ("M-`",        actionToggleOverlay) -- Launch Terminal
     ]
     where
         toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
@@ -351,6 +373,7 @@ main = do
     xmonad . docks . dynamicProjects projects . withNavigation2DConfig myNav2DConf $ def
         { layoutHook            = avoidStruts myLayoutHook
         , manageHook            = myManageHook <> manageHook def <> manageScratchPad
+        , handleEventHook       = myHandleEventHook
         , logHook               = dynamicLogWithPP xmobarPP
             { ppOutput          = hPutStrLn xmproc
             --, ppLayout          = drop 18
