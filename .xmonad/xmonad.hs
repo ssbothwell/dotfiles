@@ -153,20 +153,17 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
 -- Launchers
 myBrowser      = "/usr/bin/firefox"
 myTerminal     = "/usr/bin/konsole"
-myTerminal'    = "/home/solomon/.local/bin/st"
-myLauncher     = "rofi -show run"--"exe=`dmenu_path | dmenu` && eval \"exec $exe\""
+myLauncher     = "rofi -show run"
 scriptLauncher = "/home/solomon/.bin/scriptLauncher.py"
 myTrello       = "/usr/bin/surf www.trello.com"
-myPostman      = "/usr/bin/postman"
 mySpotify      = "/usr/bin/spotify"
 
 -- Workspaces
-myWorkspaces = ["1:term","2:web", "3:slack", "4:ranger", "5:trello", "6:sys"] ++ map show [7..9]
+myWorkspaces = ["1:term","2:web", "3:slack", "4:tripp"] ++ map show [2..8]
 
 -- Window Rules
 myManageHook = composeAll
-    [ className =? "spotify"     --> doFloat
-    , className =? "Firefox"     --> doShift "2:web"
+    [ className =? "Firefox"     --> doShift "2:web"
     , className =? "Slack"       --> doShift "3:slack"
     , className =? "stalonetray" --> doIgnore
     , manageDocks
@@ -184,33 +181,52 @@ myManageHook = composeAll
 --    w = width
 --    h = height
 
-terminalScratchpad :: NamedScratchpad
-terminalScratchpad = NS "terminal" spawnTerm queryBool floating
-    where spawnTerm = myTerminal ++ " -name scratchpad"
-          queryBool = resource   =? "scratchpad"
-          floating  = customFloating $ W.RationalRect 0.005 0.01 0.4925 0.98
+upperLeft :: W.RationalRect
+upperLeft = W.RationalRect 0.005 0.01 0.4925 0.485
+
+upperRight :: W.RationalRect
+upperRight = W.RationalRect 0.5025 0.01 0.4925 0.485
+
+lowerLeft :: W.RationalRect
+lowerLeft = W.RationalRect 0.005 0.505 0.4925 0.485
+
+lowerRight :: W.RationalRect
+lowerRight = W.RationalRect 0.5025 0.505 0.4925 0.485
+
+terminal1Scratchpad :: NamedScratchpad
+terminal1Scratchpad = NS "terminal1" spawnTerm queryBool floating
+    where spawnTerm = myTerminal ++ " -name scratchpad1"
+          queryBool = resource =? "scratchpad1"
+          floating  = customFloating upperLeft
+
+terminal2Scratchpad :: NamedScratchpad
+terminal2Scratchpad = NS "terminal2" spawnTerm queryBool floating
+    where spawnTerm = myTerminal ++ " -name scratchpad2"
+          queryBool = resource =? "scratchpad2"
+          floating  = customFloating lowerLeft
 
 trelloScratchpad :: NamedScratchpad
 trelloScratchpad = NS "trello" myTrello queryBool floating
     where queryBool = className =? "Surf"
-          floating  = customFloating $ W.RationalRect 0.5025 0.505 0.4925 0.485
+          floating  = customFloating lowerRight
 
 spotifyScratchpad :: NamedScratchpad
 spotifyScratchpad = NS "spotify" mySpotify queryBool doFloat
     where queryBool = className =? "Spotify"
 
 myScratchPads :: [NamedScratchpad]
-myScratchPads = [ terminalScratchpad, spotifyScratchpad, trelloScratchpad ]
+myScratchPads = [ terminal1Scratchpad, terminal2Scratchpad, spotifyScratchpad, trelloScratchpad ]
 
 actionToggleOverlay :: X ()
-actionToggleOverlay = mapM_ (namedScratchpadAction myScratchPads) ["terminal", "spotify", "trello"]
+actionToggleOverlay =
+    mapM_ (namedScratchpadAction myScratchPads) ["terminal1", "terminal2", "spotify", "trello"]
 
 manageScratchPad :: ManageHook
 manageScratchPad = namedScratchpadManageHook myScratchPads
 
 spotifyFloatHook :: Event -> X All
 spotifyFloatHook = dynamicPropertyChange "WM_NAME" (title =? "Spotify" --> floating)
-    where floating  = customFloating $ W.RationalRect 0.5025 0.01 0.4925 0.485
+    where floating  = customFloating upperRight
 
 myHandleEventHook :: Event -> X All
 myHandleEventHook = spotifyFloatHook
@@ -340,12 +356,9 @@ myKeys c = mkKeymap c $
     ]
     where
         toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
-        volumeUp           = spawn "amixer set Master 10%+"
-        volumeDown         = spawn "amixer set Master 10%-"
+        volumeUp           = spawn "amixer set Master 5%+"
+        volumeDown         = spawn "amixer set Master 5%-"
         recompile          = spawn "xmonad --recompile && xmonad --restart"
-        terminalScratchpad = scratchpadSpawnActionTerminal myTerminal
-        --terminalScratchpad = namedScratchpadAction myScratchPads "terminal"
-        --postmanScratchpad  = namedScratchpadAction myScratchPads "postman"
 
 myNav2DConf = def
     { defaultTiledNavigation = centerNavigation
