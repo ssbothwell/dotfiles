@@ -14,10 +14,6 @@ NORMAL="$(tput sgr0)"
 # VI mode
 set -o vi
 
-# Colorize ls
-eval `dircolors`
-alias ls='ls --color=auto'
-
 # PATH
 SCRIPTS="${HOME}/.bin"
 LOCAL="${HOME}/.local/bin"
@@ -55,9 +51,33 @@ if [ -f "${HOME}/.google-cloud-sdk/completion.bash.inc" ]; then
 fi
 
 # common path alias'
-alias tripp="cd ${HOME}/Development/trippinc/firebase-backend"
-alias trippfunc="cd ${HOME}/Development/trippinc/firebase-backend/Functions/src/GraphQL"
 alias mutt=neomutt
+alias ls=exa
+
+# Functions
+sc () { du -a  ~/.bin | awk '{print $2}' | fzf | parallel -j1 --tty $EDITOR; }
+dc () {
+  if [ -z $1 ]
+  then :
+    cd `cat ~/.bin/bookmarks | fzf | awk '{print $2}' | sed "s/~/\/home\/solomon/"`;
+  else :
+    if [ $1 == "add" ]
+    then :
+      echo "Added: '$2 ${PWD}' to bookmarks.";
+      echo "$2 ${PWD}" >> "${HOME}/.bin/bookmarks";
+  # else :
+  # if [ $1 == "del" ]
+  # then :
+  #   <find and delete a bookmark
+    fi
+  fi
+}
+
+#td ()
+#  add a new todo item or use fzf to select a todo item to either:
+#    1. mark complete
+#    2. delete
+#    3. modify
 
 # Prompt
 PS1='\W λ '
