@@ -154,7 +154,7 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
 myBrowser      = "/usr/bin/firefox"
 myTerminal     = "/usr/bin/konsole"
 myLauncher     = "rofi -show run"
-scriptLauncher = "/home/solomon/.bin/scriptLauncher.py"
+scriptLauncher = "/home/solomon/.scripts/scriptLauncher.py"
 myTrello       = "/usr/bin/surf www.trello.com"
 mySpotify      = "/usr/bin/spotify"
 
@@ -230,25 +230,6 @@ spotifyFloatHook = dynamicPropertyChange "WM_NAME" (title =? "Spotify" --> float
 
 myHandleEventHook :: Event -> X All
 myHandleEventHook = spotifyFloatHook
-
-
------------------------------------------------------
---------------------- Projects ----------------------
------------------------------------------------------
--- Work In Progress --
-projects :: [Project]
-projects =
-    [ Project { projectName      = "haskell-book"
-              , projectDirectory = "~/Development/haskell/haskell_book"
-              , projectStartHook = Just $ do spawn "urxvt"
-                                             spawn "urxvt"
-              }
-    , Project { projectName      = "Tripp Inc"
-              , projectDirectory = "~/Development/trippinc/firebase-backend/src"
-              , projectStartHook = Just $ do spawn "urxvt"
-                                             spawn "urxvt"
-              }
-    ]
 
 
 -----------------------------------------------------
@@ -381,23 +362,26 @@ myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
 ------------------------ Main -----------------------
 -----------------------------------------------------
 
+myConfig xmproc = def
+    { layoutHook            = avoidStruts myLayoutHook
+    , manageHook            = myManageHook <> manageHook def <> manageScratchPad
+    , handleEventHook       = myHandleEventHook
+    , logHook               = dynamicLogWithPP xmobarPP
+        { ppOutput          = hPutStrLn xmproc
+        , ppLayout          = drop 18
+        , ppTitle           = xmobarColor "green" "" . shorten 150
+        , ppHidden          = \ws -> if ws == "NSP" then "" else ws
+        , ppHiddenNoWindows = const mempty
+        }
+    , modMask               = mod4Mask
+    , keys                  = myKeys
+    --, myMouseBindings       = myMouseBindings
+    , workspaces            = myWorkspaces
+    , normalBorderColor     = myNormalBorderColor
+    , focusedBorderColor    = myFocusedBorderColor
+    }
+
+main :: IO ()
 main = do
     xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
-    xmonad . docks . dynamicProjects projects . withNavigation2DConfig myNav2DConf $ def
-        { layoutHook            = avoidStruts myLayoutHook
-        , manageHook            = myManageHook <> manageHook def <> manageScratchPad
-        , handleEventHook       = myHandleEventHook
-        , logHook               = dynamicLogWithPP xmobarPP
-            { ppOutput          = hPutStrLn xmproc
-            --, ppLayout          = drop 18
-            , ppTitle           = xmobarColor "green" "" . shorten 150
-            , ppHidden          = \ws -> if ws == "NSP" then "" else ws
-            , ppHiddenNoWindows = const mempty
-            }
-        , modMask               = mod4Mask
-        , keys                  = myKeys
-        --, myMouseBindings       = myMouseBindings
-        , workspaces            = myWorkspaces
-        , normalBorderColor     = myNormalBorderColor
-        , focusedBorderColor    = myFocusedBorderColor
-        }
+    xmonad . docks . withNavigation2DConfig myNav2DConf $ myConfig xmproc

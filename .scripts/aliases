@@ -1,0 +1,79 @@
+#!/bin/bash
+# This script holds various convinence aliases and bash functions.
+# If a given bash function (or set of functions) grows substantially,
+# It should be forked into its own script file.
+
+# Config Files
+alias cfbs="vim ${HOME}/.bashrc"
+alias cfxm="vim ${HOME}/.xmonad/xmonad.hs"
+alias cfxb="vim ${HOME}/.xmobarrc"
+alias cfxr="vim ${HOME}/.Xresources"
+
+# Applications
+alias mutt=neomutt
+alias ls="exa -l"
+
+# ${SCRIPTS} fuzzy finder
+sc () { du -a  $SCRIPTS | awk '{print $2}' | fzf | parallel -j1 --tty $EDITOR; }
+
+# Bookmark'd Folders Script
+dc () {
+  if [ -z $1 ]
+  then :
+    cd `cat ${SCRIPTS}/bookmarks | fzf | awk '{print $2}' | sed "s|~|$HOME|"`;
+  else :
+    if [ $1 == "add" ]; then
+      echo "Added: '$2 ${PWD}' to bookmarks.";
+      echo "$2 ${PWD}" >> "${SCRIPTS}/bookmarks";
+    elif [ $1 == "del" ]; then
+        bookmark=`cat ${SCRIPTS}/bookmarks | fzf`;
+        sed -i "\|^$bookmark|d" ${SCRIPTS}/bookmarks;
+    elif [ $1 == "rename" ]; then
+        bookmark=`cat ${SCRIPTS}/bookmarks | fzf | awk '{print $1}'`;
+        read shortcut;
+        sed -i "s|^$bookmark|$shortcut|" ${SCRIPTS}/bookmarks;
+        echo "'${bookmark}' was renamed to '${shortcut}'";
+    fi
+  fi
+}
+
+# Git Convinence Functions
+git-checkout () {
+  git checkout `git branch | fzf`;
+}
+
+git-backmerge () {
+  branch=`git branch | grep \* | cut -d ' ' -f2`;
+  git checkout develop;
+  git pull origin develop;
+  git checkout $branch;
+  git merge develop;
+}
+
+# To Do Script
+td () {
+  if [ -z $1 ]
+  then :
+    cat ~/RiceToDo.md;
+  else :
+    # TODO: Add ability to create subtasks
+    if [ $1 == "add" ]
+    then :
+      echo "Added: '$2' to todo list.";
+      echo "- $2" >> "${HOME}/RiceToDo.md";
+  # else :
+  # if [ $1 == "comp" ]
+  # then :
+  #   <find with fzf and mark complete>
+  # else :
+  # if [ $1 == "mod" ]
+  # then :
+  #   <find with fzf and modify>
+  # else :
+  # if [ $1 == "del" ]
+  # then :
+  #   <find with fzf and delete>
+    fi
+  fi
+}
+

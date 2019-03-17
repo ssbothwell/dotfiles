@@ -1,0 +1,10 @@
+home  /home/solomon
+docs /home/solomon/Documents
+dl /home/solomon/Downloads
+dev /home/solomon/Development
+hask /home/solomon/Development/haskell
+hmud /home/solomon/Development/haskell/hmud
+wk /home/solomon/Development/trippinc/firebase-backend
+wk-gql /home/solomon/Development/trippinc/firebase-backend/Functions/src/GraphQL
+wk-web /home/solomon/Development/trippinc/firebase-backend/Web
+test /home/solomon

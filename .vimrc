@@ -6,6 +6,11 @@ set wildignore+=*.pyc
 set wildignore+=*/node_modules/*
 set wildignore+=*/build/*
 set autoindent
+" Disable Ex mode
+nnoremap Q <nop>
+nnoremap q <nop>
+" Disable Man Page Shortcut
+nnoremap <S-k> <nop>
 " Enable fuzzy finder
 set path+=**
 " set swp directory
