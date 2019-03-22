@@ -235,6 +235,7 @@ myHandleEventHook = spotifyFloatHook
 -----------------------------------------------------
 ---------------------- Prompt -----------------------
 -----------------------------------------------------
+-- TODO: FINISH THIS
 
 -- A case-insensitive substring predicate function.
 predicateFunction :: String -> String -> Bool

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-ACPI Power Status Script
+ACPI Power Status Script **Deprecated**
+
 """
 from math import floor
 

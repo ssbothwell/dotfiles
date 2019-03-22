@@ -54,6 +54,6 @@ fi
 
 # Set Prompt
 PS1='\W λ '
-if [ -f ${SCRIPTS}/.bash_prompt ]; then
-  source ${SCRIPTS}/.bash_prompt
+if [ -f ${SCRIPTS}/bash_prompt ]; then
+  source ${SCRIPTS}/bash_prompt
 fi

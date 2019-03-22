@@ -4,10 +4,10 @@
 # It should be forked into its own script file.
 
 # Config Files
-alias cfbs="vim ${HOME}/.bashrc"
-alias cfxm="vim ${HOME}/.xmonad/xmonad.hs"
-alias cfxb="vim ${HOME}/.xmobarrc"
-alias cfxr="vim ${HOME}/.Xresources"
+alias cfbs="${EDITOR} ${HOME}/.bashrc"
+alias cfxm="${EDITOR} ${HOME}/.xmonad/xmonad.hs"
+alias cfxb="${EDITOR} ${HOME}/.xmobarrc"
+alias cfxr="${EDITOR} ${HOME}/.Xresources"
 
 # Applications
 alias mutt=neomutt

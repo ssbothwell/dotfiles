@@ -10,7 +10,7 @@ Config
         , Run DiskU [("/"," <used>i/<size>")] ["-L","20","-H","50","-m","1","-p","3"] 20
         , Run Volume "default" "Master"
             [ "-t", "<status> <volume>%" , "--", "-O", "", "-o", "" , "-C", "#585858" ] 1
-        , Run Com "/home/solomon/.scripts/getBattery.py" [] "battery" 100
+        , Run Com "/home/solomon/.local/bin/acpiPowerStatus" [] "battery" 100
         , Run Date "<fc=#ee9a00>%a %b %_d %Y %I:%M %p</fc>" "date" 9
         , Run Wireless "wlp4s0" [ "--template" , " <essid>" ] 10
         ]
