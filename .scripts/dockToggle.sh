@@ -20,4 +20,4 @@ else
     xrandr --output $LAPTOP --auto
 fi
 
-(exec /home/solomon/.bin/init-keyboard.sh )
+(exec /home/solomon/.scripts/init-keyboard.sh)

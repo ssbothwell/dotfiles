@@ -7,14 +7,16 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(haskell-indentation-layout-offset 4)
- '(haskell-indentation-left-offset 4)
- '(haskell-indentation-starter-offset 4)
- '(haskell-indentation-where-post-offset 4)
- '(haskell-indentation-where-pre-offset 4)
+ '(custom-safe-themes
+   (quote
+    ("151bde695af0b0e69c3846500f58d9a0ca8cb2d447da68d7fbf4154dcf818ebc" "6d589ac0e52375d311afaa745205abb6ccb3b21f6ba037104d71111e7e76a3fc" "8aca557e9a17174d8f847fb02870cb2bb67f3b6e808e46c0e54a44e3e18e1020" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "10461a3c8ca61c52dfbbdedd974319b7f7fd720b091996481c8fb1dded6c6116" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "d2e9c7e31e574bf38f4b0fb927aaff20c1e5f92f72001102758005e53d77b8c9" "43c808b039893c885bdeec885b4f7572141bd9392da7f0bd8d8346e02b2ec8da" "49ec957b508c7d64708b40b0273697a84d3fee4f15dd9fc4a9588016adee3dad" "6b2636879127bf6124ce541b1b2824800afc49c6ccd65439d6eb987dbf200c36" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default)))
+ '(org-agenda-files
+   (quote
+    ("~/agendas/PersonalAgenda.org" "~/agendas/CompSciAgenda.org" "~/agendas/TrippAgenda.org")))
  '(package-selected-packages
    (quote
-    (intero general flycheck-haskell projectile whitespace-cleanup-mode flycheck which-key validate minions use-package moody pretty-mode solarized-theme haskell-mode evil))))
+    (doom-themes solarized-theme color-theme-sanityinc-solarized dtrt-indent smartparens intero general flycheck-haskell projectile whitespace-cleanup-mode flycheck which-key validate minions use-package moody pretty-mode solarized-theme haskell-mode evil)))
+ '(sp-base-key-bindings (quote sp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -41,8 +43,15 @@
 ;; Global Line Numbers
 (global-linum-mode 1)
 
+(eval-after-load "linum"
+  '(set-face-attribute 'linum nil :height 100))
+
 ;; Replace Yes/No with Y/N
 (fset 'yes-or-no-p 'y-or-n-p)
+
+;; Soft Tabs
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 2)
 
 ;; Set default font
 (set-face-attribute 'default nil
@@ -54,10 +63,13 @@
 ;; Highlight Matching Parens
 (show-paren-mode 1)
 
+;; Set backup directory
+(setq backup-directory-alist `(("." . "~/.emacs.d/file-backup")))
+
 ;; TODO: Change this to change the font color instead of adding a glyph.
 ;; TODO: Trigger this automatically on file save.
 ;; Annotate TODO comments
-(defun annotate-todo ()
+(defun annetate-todo ()
   "Put fringe marker on TODO: lines in the curent buffer."
   (interactive)
   (save-excursion
@@ -71,21 +83,56 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; External Packages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TODO: Investigate RSS Readers
 
 ;; Solarized Theme
-(use-package solarized-theme
+;(use-package solarized-theme
+;  :config
+;  (load-theme 'solarized-dark t)
+;  (let ((line (face-attribute 'mode-line :underline)))
+;    (set-face-attribute 'mode-line          nil :overline   line)
+;    (set-face-attribute 'mode-line-inactive nil :overline   line)
+;    (set-face-attribute 'mode-line-inactive nil :underline  line)
+;    (set-face-attribute 'mode-line          nil :box        nil)
+;    (set-face-attribute 'mode-line-inactive nil :box        nil)
+;    (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
+
+;; Doom Themes
+(use-package doom-themes
   :config
-  (load-theme 'solarized-dark t)
-  (let ((line (face-attribute 'mode-line :underline)))
-    (set-face-attribute 'mode-line          nil :overline   line)
-    (set-face-attribute 'mode-line-inactive nil :overline   line)
-    (set-face-attribute 'mode-line-inactive nil :underline  line)
-    (set-face-attribute 'mode-line          nil :box        nil)
-    (set-face-attribute 'mode-line-inactive nil :box        nil)
-    (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
+  (load-theme 'doom-one t)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+)
+
+
+;; Projectile
+(use-package projectile
+  :config
+  (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  (setq projectile-enable-caching nil))
+  
 
 ;; General
-(use-package general)
+(use-package general
+  :config
+  (general-define-key
+   "<f5>" 'load-theme
+   "<f6>" 'align-regexp
+   )
+  )
+
+;; Smartparens
+(use-package smartparens
+  :diminish smartparens-mode
+  :config
+  (setq sp-show-pair-from-inside nil)
+  (progn
+    (require 'smartparens-config)
+    (smartparens-global-mode 1)
+    ))
 
 ;; Which-Key
 (use-package which-key
@@ -192,7 +239,17 @@
     (kbd "C-h")
     (lambda ()
       (interactive)
-      (insert " <- "))))
+      (insert " <- ")))
+  (define-key evil-insert-state-map
+    (kbd "C-j")
+    (lambda ()
+      (interactive)
+      (insert " =<< ")))
+  (define-key evil-insert-state-map
+    (kbd "C-k")
+    (lambda ()
+      (interactive)
+      (insert " >>= "))))
   ;;(setq evil-want-C-u-scroll t)
 
 ;; TODO: Figure out how to customize moody, or create my own modeline script.
@@ -213,6 +270,8 @@
 ;; InteractivelyDoThings
 (use-package ido
   :config
+  (setq ido-enable-flex-matching t
+    ido-everywhere t)
   (ido-mode t))
 
 ;; Flycheck
@@ -224,11 +283,11 @@
 
 ;; TODO: Figure out how to adjust whitespace highlighting to just highlight spaces/tabs.
 ;; Whitespace
-(use-package whitespace
-  :config
-  (global-whitespace-mode 1)
-  (setq whitespace-style 'spaces)
-  (setq whitespace-style '(face tabs spaces)))
+;;(use-package whitespace
+;;  :config
+;;  (global-whitespace-mode 1)
+;;  (setq whitespace-style 'spaces)
+;;  (setq whitespace-style '(face tabs spaces)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -247,6 +306,11 @@
   (flycheck-add-next-checker 'intero '(warning . haskell-hlint))
 )
 
+;; Company
+(use-package company)
+
+;; dtrt-index
+(use-package dtrt-indent)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Javascript Configuration ;;;

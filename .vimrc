@@ -100,6 +100,10 @@ set foldlevelstart=99
 
 
 """ KEY MAPPINGS
+" C-k as halfpage up
+map <C-k> <C-u>
+" C-j as halfpage down
+map <C-j> <C-d>
 " Spacebar as leader
 " nnoremap <SPACE> <Nop>
 " let mapleader = "\<Space>"

@@ -34,62 +34,45 @@
 #define S_cyan          #2aa198
 #define S_green         #859900
 
-*background:            S_base03
-*foreground:            S_base0
-*fading:                40
-*fadeColor:             S_base03
-*cursorColor:           S_base1
-*pointerColorBackground:S_base01
-*pointerColorForeground:S_base1
+*.background:            S_base03
+*.foreground:            S_base0
+*.fading:                40
+*.fadeColor:             S_base03
+*.cursorColor:           S_base1
+*.pointerColorBackground:S_base01
+*.pointerColorForeground:S_base1
 
 !! black dark/light
-*color0:                S_base02
-*color8:                S_base03
+*.color0:                S_base02
+*.color8:                S_base03
 
 !! red dark/light
-*color1:                S_red
-*color9:                S_orange
+*.color1:                S_red
+*.color9:                S_orange
 
 !! green dark/light
-*color2:                S_green
-*color10:               S_base01
+*.color2:                S_green
+*.color10:               S_base01
 
 !! yellow dark/light
-*color3:                S_yellow
-*color11:               S_base00
+*.color3:                S_yellow
+*.color11:               S_base00
 
 !! blue dark/light
-*color4:                S_blue
-*color12:               S_base0
+*.color4:                S_blue
+*.color12:               S_base0
 
 !! magenta dark/light
-*color5:                S_magenta
-*color13:               S_violet
+*.color5:                S_magenta
+*.color13:               S_violet
 
 !! cyan dark/light
-*color6:                S_cyan
-*color14:               S_base1
+*.color6:                S_cyan
+*.color14:               S_base1
 
 !! white dark/light
-*color7:                S_base2
-*color15:		            S_base3
-
-urxvt*dynamicColors:    on
-URxvt.font:             xft:Meslo LG M:style=Regular:size=12, xft:Noto Emoji
-URxvt.scrollBar:        false
-!!URxvt.depth:            32
-!!urxvt*background:       rgba:0000/0000/0200/c800
-!!urxvt*transparent:      true
-!!urxvt*shading:          30
-
-
-URxvt.perl-ext-common:  ...,font-size, selection-to-clipboard
-URxvt.keysym.C-equal:   font-size:increase
-URxvt.keysym.C--:       font-size:decrease
-URxvt.keysym.C-0:       font-size:reset
-
-URxvt.keysym.C-9: command:\033]11;S_base3\007
-!URxvt.keysym.C-8: command:\033]10;S_base00\007
+*.color7:                S_base2
+*.color15:		            S_base3
 
 
 Xft.dpi:                90
@@ -100,11 +83,21 @@ Xft.hinting:            1
 Xft.antialias:          1
 Xft.rgba:               rgb
 
+!!!!!!!!!!!!!!!!!
+!!! St Config !!!
+!!!!!!!!!!!!!!!!!
 
-!! Rofi Solarized Theme
+!! *.font:Fira Code Medium:pixelsize=14:antialias=true:autohint=true;
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! Rofi Solarized Theme !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !                  bg        border   separator
-rofi.color-window: S_base03, S_red,   S_base00
-!                  bg        fg       altbg     hlbg      hlfg
-rofi.color-normal: S_base03, S_base0, S_base03, S_base02, S_green
-rofi.color-active: S_base03, S_base0, S_base03, S_base02, S_blue
-rofi.color-urgent: S_base03, S_base0, S_base03, S_base02, S_magenta
+!rofi.color-window: S_base02, S_red,   S_base00
+!
+!!                  bg        fg       altbg     hlbg      hlfg
+!rofi.color-normal: S_base03, S_base0, S_base03, S_base02, S_green
+!rofi.color-active: S_base03, S_base0, S_base03, S_base02, S_blue
+!rofi.color-urgent: S_base03, S_base0, S_base03, S_base02, S_magenta
