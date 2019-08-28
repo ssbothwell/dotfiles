@@ -58,7 +58,7 @@ match ExtraWhitespace /\s\+$/
 """ SPACES AND TABS
 " Standard Tabs
 set tabstop=2
-"set softtabstop=2
+set softtabstop=2
 set shiftwidth=2
 set expandtab
 " Flag White Space

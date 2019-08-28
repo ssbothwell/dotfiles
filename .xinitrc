@@ -10,7 +10,9 @@ init-keyboard.sh
 sleep 1
 xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape" &
 stalonetray &
+dunst &
 nm-applet &
-xsetroot -solid "#002b36" &
 xbanish &
+xsetroot -solid "#002b36"
+xsetroot -cursor_name  left_ptr
 exec xmonad

@@ -159,7 +159,7 @@ myTrello       = "/usr/bin/surf www.trello.com"
 mySpotify      = "/usr/bin/spotify"
 
 -- Workspaces
-myWorkspaces = ["1:term","2:web", "3:slack", "4:tripp"] ++ map show [2..8]
+myWorkspaces = ["1:term","2:web", "3:slack"] ++ map show [4..9]
 
 -- Window Rules
 myManageHook = composeAll

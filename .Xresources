@@ -34,54 +34,105 @@
 #define S_cyan          #2aa198
 #define S_green         #859900
 
-*.background:            S_base03
-*.foreground:            S_base0
+!*.foreground:            S_base0
+!*.fading:                40
+!*.fadeColor:             S_base03
+!*.cursorColor:           S_base1
+!*.pointerColorBackground:S_base01
+!*.pointerColorForeground:S_base1
+
+!! DOOM Peacock Theme
+#define DM_fg           #ede0ce
+#define DM_black        #282c34
+#define DM_brightblack  #9ca0a4
+#define DM_white        #DFDFDF
+#define DM_brightwhite  #bbc2cf
+#define DM_red          #ff6c6b
+#define DM_brightred    #da8548
+#define DM_green        #98be65
+#define DM_brightgreen  #4db5bd
+#define DM_yellow       #ECBE7B
+#define DM_coralpop     #a60033
+#define DM_blue         #2257A0
+#define DM_brightblue   #51afef
+#define DM_magenta      #a9a1e1
+#define DM_brightmagent #c678dd
+#define DM_cyan         #46D9FF
+#define DM_brightcyan   #5699AF
+
+*.foreground:            DM_fg
 *.fading:                40
-*.fadeColor:             S_base03
-*.cursorColor:           S_base1
-*.pointerColorBackground:S_base01
-*.pointerColorForeground:S_base1
+*.fadeColor:             D_base0
+*.cursorColor:           DM_coralpop
+!!*.pointerColorBackground:DM_coralpop
+!!*.pointerColorForeground:S_base0
+
 
 !! black dark/light
-*.color0:                S_base02
-*.color8:                S_base03
+*.color0:                DM_black
+*.color8:                DM_brightblack
 
 !! red dark/light
-*.color1:                S_red
-*.color9:                S_orange
+*.color1:                DM_red
+*.color9:                DM_brightred
 
 !! green dark/light
-*.color2:                S_green
-*.color10:               S_base01
+*.color2:                DM_green
+*.color10:               DM_brightgreen
 
 !! yellow dark/light
-*.color3:                S_yellow
-*.color11:               S_base00
+*.color3:                DM_yellow
+*.color11:               DM_coralpop
 
 !! blue dark/light
-*.color4:                S_blue
-*.color12:               S_base0
+*.color4:                DM_blue
+*.color12:               DM_brightblue
 
 !! magenta dark/light
-*.color5:                S_magenta
-*.color13:               S_violet
+*.color5:                DM_magenta
+*.color13:               DM_brightmagent
 
 !! cyan dark/light
-*.color6:                S_cyan
-*.color14:               S_base1
+*.color6:                DM_cyan
+*.color14:               DM_brightcyan
 
 !! white dark/light
-*.color7:                S_base2
-*.color15:		            S_base3
+*.color7:                DM_white
+*.color15:		           DM_brightwhite
 
 
-Xft.dpi:                90
-Xft.autohint:           0
-Xft.lcdfilter:          lcddefault
-Xft.hintstyle:          hintfull
-Xft.hinting:            1
-Xft.antialias:          1
-Xft.rgba:               rgb
+!!!! black dark/light
+!!*color0:                S_base02
+!!*color8:                S_base03
+!!
+!!!! red dark/light
+!!*color1:                S_red
+!!*color9:                S_orange
+!!
+!!!! green dark/light
+!!*color2:                S_green
+!!*color10:               S_base01
+!!
+!!!! yellow dark/light
+!!*color3:                S_yellow
+!!*color11:               S_base00
+!!
+!!!! blue dark/light
+!!*color4:                S_blue
+!!*color12:               S_base0
+!!
+!!!! magenta dark/light
+!!*color5:                S_magenta
+!!*color13:               S_violet
+!!
+!!!! cyan dark/light
+!!*color6:                S_cyan
+!!*color14:               S_base1
+!!
+!!!! white dark/light
+!!*color7:                S_base2
+!!*color15: S_base3
+
 
 !!!!!!!!!!!!!!!!!
 !!! St Config !!!
