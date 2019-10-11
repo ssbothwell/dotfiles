@@ -8,7 +8,7 @@ init-keyboard.sh
 
 # TODO: Figure out alternative to `sleep 1`
 sleep 1
-xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape" &
+#xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape" &
 stalonetray &
 dunst &
 nm-applet &

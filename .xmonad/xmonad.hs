@@ -43,7 +43,7 @@ import System.IO
 import System.Exit
 import qualified Data.Map as M
 import Data.Char (toLower)
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, intersperse)
 import Data.Semigroup
 
 
@@ -153,11 +153,17 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
 -- Launchers
 myBrowser      = "/usr/bin/firefox"
 myTerminal     = "/usr/bin/konsole"
-myLauncher     = "rofi -show run"
 scriptLauncher = "/home/solomon/.scripts/scriptLauncher.py"
 myTrello       = "/usr/bin/surf www.trello.com"
 mySpotify      = "/usr/bin/spotify"
-
+myLauncher     = mconcat $ intersperse " " [path, font, bgcolor, fgcolor, sfcolor, sbcolor]
+    where
+        path = "/usr/bin/dmenu_run"
+        font = "-fn \"xft:Bitstream Vera Sans Mono:size=11:bold:antialias=true\""
+        bgcolor = "-nb " <> show base03
+        fgcolor = "-nf " <> show green
+        sbcolor = "-sb " <> show base02
+        sfcolor = "-sf " <> show base0
 -- Workspaces
 myWorkspaces = ["1:term","2:web", "3:slack"] ++ map show [4..9]
 
