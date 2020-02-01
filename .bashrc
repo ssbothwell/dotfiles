@@ -28,21 +28,6 @@ export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}"
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
-# Set up Node Version Manager
-if [ -f /usr/share/nvm/init-nvm.sh ]; then
-  source /usr/share/nvm/init-nvm.sh
-fi
-
-# Xmonad dir defaults
-export XMONAD_DATA_DIR=$XMONAD
-export XMONAD_CACHE_DIR=$XMONAD
-export XMONAD_CONFIG_DIR=$XMONAD
-
-# Load Gcloud SDK Script
-if [ -f ${SCRIPTS}/gcloud ]; then
-  source ${SCRIPTS}/gcloud
-fi
-
 # Load Aliases/Functions
 if [ -f ${SCRIPTS}/aliases ]; then
   source ${SCRIPTS}/aliases
