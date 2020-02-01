@@ -34,7 +34,7 @@ hi TabLineFill ctermfg=7
 " Syntax Highlighting
 let python_highlight_all=1
 syntax on
-colorscheme solarized
+" colorscheme solarized
 
 let g:haskell_classic_highlighting = 1
 let g:haskell_enable_quantification = 1   " to enable highlighting of `forall`

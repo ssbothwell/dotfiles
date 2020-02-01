@@ -4,7 +4,7 @@ Config
     , pickBroadest = True -- choose widest display (multi-monitor)
     , bgColor      = "#002B36"
     , fgColor      = "#585858"
-    , position     = Static { xpos = 0, ypos = 3, width = 1845, height = 20 } --TopW L 95
+    , position     = Static { xpos = 0, ypos = 3, width = 1840, height = 20 } --TopW L 95
     , commands     =
         [ Run StdinReader
         , Run DiskU [("/"," <used>i/<size>")] ["-L","20","-H","50","-m","1","-p","3"] 20

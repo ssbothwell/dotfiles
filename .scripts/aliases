@@ -12,6 +12,9 @@ alias cfxr="${EDITOR} ${HOME}/.Xresources"
 # Applications
 alias mutt=neomutt
 alias ls="exa -l"
+alias ns="nix-shell"
+alias nb="sudo nixos-rebuild switch"
+alias nc="sudo ${EDITOR} /etc/nixos/configuration.nix"
 
 # ${SCRIPTS} fuzzy finder
 sc () { du -a  $SCRIPTS | awk '{print $2}' | fzf | parallel -j1 --tty $EDITOR; }

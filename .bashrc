@@ -28,10 +28,6 @@ export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}"
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
-# Disable XOFF
-stty -ixon
-source /usr/bin/activate.sh
-
 # Set up Node Version Manager
 if [ -f /usr/share/nvm/init-nvm.sh ]; then
   source /usr/share/nvm/init-nvm.sh

@@ -152,13 +152,13 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
 
 -- Launchers
 myBrowser      = "/usr/bin/firefox"
-myTerminal     = "/usr/bin/konsole"
+myTerminal     = "/home/solomon/.local/bin/termonad"
 scriptLauncher = "/home/solomon/.scripts/scriptLauncher.py"
 myTrello       = "/usr/bin/surf www.trello.com"
 mySpotify      = "/usr/bin/spotify"
 myLauncher     = mconcat $ intersperse " " [path, font, bgcolor, fgcolor, sfcolor, sbcolor]
     where
-        path = "/usr/bin/dmenu_run"
+        path = "dmenu_run"
         font = "-fn \"xft:Bitstream Vera Sans Mono:size=11:bold:antialias=true\""
         bgcolor = "-nb " <> show base03
         fgcolor = "-nf " <> show green
@@ -376,7 +376,7 @@ myConfig xmproc = def
     , logHook               = dynamicLogWithPP xmobarPP
         { ppOutput          = hPutStrLn xmproc
         , ppLayout          = drop 18
-        , ppTitle           = xmobarColor "green" "" . shorten 150
+        , ppTitle           = xmobarColor "green" "" . shorten 250
         , ppHidden          = \ws -> if ws == "NSP" then "" else ws
         , ppHiddenNoWindows = const mempty
         }
@@ -390,5 +390,5 @@ myConfig xmproc = def
 
 main :: IO ()
 main = do
-    xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmobarrc"
+    xmproc <- spawnPipe "xmobar ~/.xmobarrc"
     xmonad . docks . withNavigation2DConfig myNav2DConf $ myConfig xmproc

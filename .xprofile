@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# TODO: Figure out why I have this path export
-#export PATH="${PATH}:${HOME}/.local/bin:${HOME}/.xmonad"
-#
-## TODO: Replace all of these with Systemd Service
-#stalonetray &
-#nm-applet &
-#$HOME/.scripts/init-keyboard.sh
-#xsetroot -solid "#002b36"
-#xbanish &
+# TODO: Replace all of these with Systemd Service
+sleep 1
+stalonetray &
+nm-applet &
+$HOME/.scripts/init-keyboard.sh
+xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape"
+xsetroot -solid "#002b36"
+xbanish &
+exec xmonad

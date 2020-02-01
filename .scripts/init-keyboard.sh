@@ -38,6 +38,6 @@ EOF
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$XUSERID/bus"
 notify-send -u low "Keyboard initialized"
 xkbcomp -synch -w3 -I$XKBDIR $XKBDIR/keymap/custom.xkb $DISPLAY &>/dev/null
-#(exec killall -q xcape) & # gets restarted by the xcape systemd user service
-(exec /usr/bin/xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape")
+# (exec kill xcape) & # gets restarted by the xcape systemd user service
+# (exec xcape -e "Hyper_L=Tab;Hyper_R=backslash;Control_L=Escape")
 echo "keyboard initialized"
