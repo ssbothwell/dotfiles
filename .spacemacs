@@ -392,20 +392,25 @@ you should place your code here."
       (insert " <=< ")))
 
   ;; Org Mode
+  ;(org-use-fast-todo-selection t)
   (setq org-todo-keywords
-        '((sequence "BACKLOG" "TODO" "|" "DONE")))
+        '((sequence "BACKLOG(b)" "TODO(t)" "|" "DONE(d)")))
 
   (setq org-todo-keyword-faces
         '( ("BACKLOG" . "gray")
           ))
 
   (setq org-agenda-custom-commands
-        '(("O" "Test block agenda"
+        '(("A" "Active Agenda"
            ((agenda "" ((org-agenda-span 1)))
-            (tags "style=\"habit\"")
-            (tags "todo=\"TODO\"&-style=\"habit\"")
-            (todo "BACKLOG"))
+            (tags "style=\"habit\""
+                  ((org-agenda-overriding-header "Habits:")))
+            (tags "todo=\"TODO\"&-style=\"habit\""
+                  ((org-agenda-overriding-header "Active TODOs:"))))
            ((org-agenda-compact-blocks t)))
+          ("B" "Backlog"
+           ((todo "BACKLOG"
+                  ((org-agenda-overriding-header "Backlogged TODOs:")))))
           ))
 
   ;(setq org-habit-show-all-today t)
