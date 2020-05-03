@@ -11,26 +11,33 @@ WHITE="$(tput setaf 7)"
 BOLD="$(tput bold)"
 NORMAL="$(tput sgr0)"
 
-# VI mode
-set -o vi
-
 # PATH
-SCRIPTS="${HOME}/.scripts"
+SCRIPTS="${HOME}/.local/scripts"
 LOCAL="${HOME}/.local/bin"
 GEM="${HOME}/.gem/ruby/2.5.0/bin"
 NODE="${HOME}/.node_modules/bin"
 YARN="${HOME}/.yarn/bin"
 XMONAD="${HOME}/.xmonad"
+CABAL="${HOME}/.cabal/bin"
 
-export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}"
+export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}:${CABAL}"
 
 # Set Vim as default editor (for git etc)
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
-# Load Aliases/Functions
+# Load Aliases
 if [ -f ${SCRIPTS}/aliases ]; then
-  source ${SCRIPTS}/aliases
+    source ${SCRIPTS}/aliases
+fi
+
+if [ -f ${SCRIPTS}/workAliases ]; then
+    source ${SCRIPTS}/workAliases
+fi
+
+# Load Functions
+if [ -f ${SCRIPTS}/functions ]; then
+    source ${SCRIPTS}/functions
 fi
 
 # Set Prompt
