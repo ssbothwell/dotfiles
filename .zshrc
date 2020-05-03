@@ -9,6 +9,10 @@ CABAL="${HOME}/.cabal/bin"
 
 export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}:${CABAL}"
 
+if [[ $HOST == "wl-sbothwe-mac" ]]; then
+    source $HOME/.profile
+fi
+
 # Load Aliases
 if [ -f ${SCRIPTS}/aliases ]; then
   source ${SCRIPTS}/aliases
