@@ -1,24 +1,4 @@
 #!/bin/bash
-# This script holds various convinence aliases and bash functions.
-# If a given bash function (or set of functions) grows substantially,
-# It should be forked into its own script file.
-
-# SSH
-alias cofree-coffee="ssh solomon@cofree.coffee"
-alias ours="ssh solomon@142.93.159.251"
-
-# Config Files
-alias cfbs="${EDITOR} ${HOME}/.bashrc"
-alias cfxm="${EDITOR} ${HOME}/.xmonad/xmonad.hs"
-alias cfxb="${EDITOR} ${HOME}/.xmobarrc"
-alias cfxr="${EDITOR} ${HOME}/.Xresources"
-
-# Applications
-alias mutt=neomutt
-alias ls="exa -l"
-alias ns="nix-shell"
-alias nb="sudo nixos-rebuild switch"
-alias nc="sudo ${EDITOR} /etc/nixos/configuration.nix"
 
 deploy-blog () {
     # TODO Make this fail if in wrong PWD
@@ -52,8 +32,19 @@ hask-new () {
     fi
 }
 
-# ${SCRIPTS} fuzzy finder
-sc () { du -a  $SCRIPTS | awk '{print $2}' | fzf | parallel -j1 --tty $EDITOR; }
+findGit () {
+    find $1 -type d \( -exec test -d "{}/.git" -a "{}" != "." \; -print -prune -o -name .git -prune \)
+}
+
+if [[ $HOST == "nixos" ]]; then
+    Repos="Development"
+else
+    Repos="Repos"
+fi
+
+go () {
+    cd `findGit ${HOME}/${Repos} | cut -d '/' -f5- | fzf --no-sort | awk -v path="$HOME/$Repos/" '{print path $0}'`
+}
 
 # Bookmark'd Folders Script
 dc () {
@@ -88,31 +79,3 @@ git-backmerge () {
   git checkout $branch;
   git merge develop;
 }
-
-# To Do Script
-td () {
-  if [ -z $1 ]
-  then :
-    cat ~/RiceToDo.md;
-  else :
-    # TODO: Add ability to create subtasks
-    if [ $1 == "add" ]
-    then :
-      echo "Added: '$2' to todo list.";
-      echo "- $2" >> "${HOME}/RiceToDo.md";
-  # else :
-  # if [ $1 == "comp" ]
-  # then :
-  #   <find with fzf and mark complete>
-  # else :
-  # if [ $1 == "mod" ]
-  # then :
-  #   <find with fzf and modify>
-  # else :
-  # if [ $1 == "del" ]
-  # then :
-  #   <find with fzf and delete>
-    fi
-  fi
-}
-
