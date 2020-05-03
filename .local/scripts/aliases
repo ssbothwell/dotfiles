@@ -1,0 +1,90 @@
+#!/bin/bash
+# This script holds various convinence aliases and bash functions.
+# If a given bash function (or set of functions) grows substantially,
+# It should be forked into its own script file.
+
+# SSH
+alias cofree-coffee="ssh solomon@cofree.coffee"
+alias ours="ssh solomon@142.93.159.251"
+
+# Config Files
+alias cfbs="${EDITOR} ${HOME}/.bashrc"
+alias cfxm="${EDITOR} ${HOME}/.xmonad/xmonad.hs"
+alias cfxb="${EDITOR} ${HOME}/.xmobarrc"
+alias cfxr="${EDITOR} ${HOME}/.Xresources"
+
+# Applications
+alias mutt=neomutt
+alias ls="exa -l"
+alias ns="nix-shell"
+alias nb="sudo nixos-rebuild switch"
+alias nc="sudo ${EDITOR} /etc/nixos/configuration.nix"
+
+deploy-blog () {
+    # TODO Make this fail if in wrong PWD
+    # TODO: Make this work from other paths
+    # TODO: Make this work for other websites
+    blogGenerator > index.html
+    rsync -r --delete . cofree.coffee:/srv/www/cofree.coffee/html
+}
+
+hask-new () {
+    if [ $1 ] && ! [ -d $PWD/$1 ]
+    then
+        echo "Creating a fresh haskell project in ./${1}"
+        mkdir $1
+        cd $1
+        nix-shell --packages ghc --run 'cabal init'
+        cp $HOME/.local/etc/release.nix .
+        cp $HOME/.local/etc/shell.nix .
+        cabal2nix . > default.nix
+        echo use_nix > .envrc
+        git init
+        git add -A
+        git commit -m "initial commit"
+        direnv allow
+        cd ..
+    elif [ -d $PWD/$1 ]
+    then
+         echo "./${1} already exists"
+    else
+        echo "Please enter a project name"
+    fi
+}
+
+# ${SCRIPTS} fuzzy finder
+sc () { du -a  $SCRIPTS | awk '{print $2}' | fzf | parallel -j1 --tty $EDITOR; }
+
+# Bookmark'd Folders Script
+dc () {
+  if [ -z $1 ]
+  then :
+    cd `cat ${SCRIPTS}/bookmarks | fzf | awk '{print $2}' | sed "s|~|$HOME|"`;
+  else :
+    if [ $1 == "add" ]; then
+      echo "Added: '$2 ${PWD}' to bookmarks.";
+      echo "$2 ${PWD}" >> "${SCRIPTS}/bookmarks";
+    elif [ $1 == "del" ]; then
+        bookmark=`cat ${SCRIPTS}/bookmarks | fzf`;
+        sed -i "\|^$bookmark|d" ${SCRIPTS}/bookmarks;
+    elif [ $1 == "rename" ]; then
+        bookmark=`cat ${SCRIPTS}/bookmarks | fzf | awk '{print $1}'`;
+        read shortcut;
+        sed -i "s|^$bookmark|$shortcut|" ${SCRIPTS}/bookmarks;
+        echo "'${bookmark}' was renamed to '${shortcut}'";
+    fi
+  fi
+}
+
+# Git Convinence Functions
+git-checkout () {
+  git checkout `git branch | fzf`;
+}
+
+git-backmerge () {
+  branch=`git branch | grep \* | cut -d ' ' -f2`;
+  git checkout develop;
+  git pull origin develop;
+  git checkout $branch;
+  git merge develop;
+}
