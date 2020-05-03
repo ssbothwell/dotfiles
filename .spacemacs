@@ -30,9 +30,10 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(rust
+   '(clojure
+     react
+     rust
      ocaml
-     ;;ocaml
      html
      yaml
      ;; ----------------------------------------------------------------
@@ -40,28 +41,29 @@ values."
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
-     auto-completion
+     ;auto-completion
      ;; better-defaults
-     (elfeed :variables rmh-elfeed-org-files (list "~/.emacs.d/private/elfeed1.org"
-                                                   "~/.emacs.d/private/elfeed2.org"))
+     ;(elfeed :variables rmh-elfeed-org-files (list "~/.emacs.d/private/elfeed1.org"
+     ;                                              "~/.emacs.d/private/elfeed2.org"))
      emacs-lisp
      git
-     (haskell :variables
-              haskell-process-type 'stack-ghci
-              haskell-completion-backend 'ghci)
      helm
-     javascript
+     (haskell :variables haskell-process-type 'cabal-new-repl haskell-completion-backend 'ghci)
+     ;(haskell :variables haskell-completion-backend 'lsp)
      idris
+     (javascript :variables tern-command '("~/.local/bin/tern"))
      lsp
      ;; markdown
      nixos
      org
+     ;org-roam
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
-     spell-checking
+     ;spell-checking
      syntax-checking
      themes-megapack
+     typescript
      version-control
      )
    ;; List of additional packages that will be installed without being
@@ -70,7 +72,8 @@ values."
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages
    '(
-     (lsp-haskell :location (recipe :fetcher github :repo "emacs-lsp/lsp-haskell"))
+     nix-sandbox
+     direnv
    )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -144,6 +147,7 @@ values."
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(sanityinc-tomorrow-eighties
+                         monochrome
                          spacemacs-dark
                          spacemacs-light
                          )
@@ -329,72 +333,133 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  ;; Haskell Mode
+  ;;; Haskell Mode
+
+  (setq default-nix-wrapper
+        (lambda (args)
+          (append
+           ;; Change this to match your home directory/preferences
+           (append (list "nix-shell" "--command" )
+                   (list (mapconcat 'identity args " "))
+                   )
+           (list (nix-current-sandbox))
+           )
+          )
+        )
+
+  (setq haskell-nix-wrapper
+        (lambda (args)
+          (apply default-nix-wrapper (list (append args (list "--ghc-option" "-Wwarn"))))
+          )
+        )
+  ;; Haskell repl session that runs in the background
+  (setq haskell-process-wrapper-function haskell-nix-wrapper)
+
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+
+  (add-hook 'haskell-mode-hook (lambda () (flycheck-mode -1)))
+
+  (setq haskell-process-use-presentation-mode t)
+
+  (setq haskell-ghci-options
+        '("-ferror-spans"
+          "-fdefer-typed-holes"
+          "-fno-max-relevant-binds"
+          "-fno-diagnostics-show-caret"
+          "-fno-show-valid-hole-fits"
+          "-fobject-code"
+          "-fbyte-code"))
+
+  (setq haskell-process-args-stack-ghci
+        (list (concat "--ghci-options=" (string-join haskell-ghci-options " "))
+              "--no-build"
+              "--no-load"))
+
+  (setq haskell-process-args-cabal-new-repl
+        (mapcar (lambda (opt) (concat "--repl-options=" opt)) haskell-ghci-options))
+
+  (setq haskell-interactive-popup-errors nil)
+
+  (push '("*Haskell Presentation*" :height 20 :position bottom) popwin:special-display-config)
+
+  (setq haskell-process-args-ghci haskell-ghci-options)
+
+
   (setq lsp-ui-sideline-enable nil
-        lsp-haskell-process-args-hie '("--lsp")
-        lsp-haskell-process-path-hie "ghcide"
-        lsp-haskell-process-wrapper-function (lambda (argv) (cons (car argv) (cddr argv))))
-  (add-hook 'haskell-mode-hook
-            #'lsp)
-  (require 'lsp-haskell)
-  (add-hook 'haskell-mode-hook #'lsp)  (setq powerline-default-separator 'butt)
-  ;;(add-to-list 'haskell-mode-hook
-  ;;  (define-key
-  ;;    (kbd "C-c C-t") 'haskell-intero/insert-type
-  ;;  )
-  ;;)
+        lsp-ui-doc-enable nil)
+
+  ;; Javascript
+  (setq-default
+   ;; js2-mode
+   js2-basic-offset 2
+   ;; web-mode
+   css-indent-offset 2
+   web-mode-markup-indent-offset 2
+   web-mode-css-indent-offset 2
+   web-mode-code-indent-offset 2
+   web-mode-attr-indent-offset 2)
+
+
+  (with-eval-after-load 'web-mode
+    (add-to-list 'web-mode-indentation-params '("lineup-args" . nil))
+    (add-to-list 'web-mode-indentation-params '("lineup-concats" . nil))
+    (add-to-list 'web-mode-indentation-params '("lineup-calls" . nil)))
 
   ;; Keybindings
-  (define-key evil-normal-state-map
+  (add-hook 'haskell-mode-hook 
+            (lambda ()  (spacemacs/set-leader-keys-for-major-mode 'haskell-mode
+                          "ht" 'haskell-mode-show-type-at))
+            99)
+  (evil-define-key 'normal haskell-mode-map
     (kbd "C-k")
     (lambda ()
       (interactive)
       (evil-scroll-up nil)))
-  (define-key evil-normal-state-map
+  (evil-define-key 'normal haskell-mode-map
     (kbd "C-j")
     (lambda ()
       (interactive)
       (evil-scroll-down nil)))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-l")
     (lambda ()
       (interactive)
       (insert " -> ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-S-l")
     (lambda ()
       (interactive)
       (insert " => ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-h")
     (lambda ()
       (interactive)
       (insert " <- ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-j")
     (lambda ()
       (interactive)
       (insert " =<< ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-k")
     (lambda ()
       (interactive)
       (insert " >>= ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-S-k")
     (lambda ()
       (interactive)
       (insert " >=> ")))
-  (define-key evil-insert-state-map
+  (evil-define-key 'insert haskell-mode-map
     (kbd "C-S-j")
     (lambda ()
       (interactive)
       (insert " <=< ")))
 
   ;; Org Mode
-  ;(org-use-fast-todo-selection t)
   (setq org-todo-keywords
-        '((sequence "BACKLOG(b)" "TODO(t)" "|" "DONE(d)")))
+        '((sequence "BACKLOG(b)" "TODO(t)" "|" "DONE(d)")
+          (sequence "INCOMPLETE(I)" "|" "COMPLETE(c)")))
 
   (setq org-todo-keyword-faces
         '( ("BACKLOG" . "gray")
@@ -416,63 +481,130 @@ you should place your code here."
   ;(setq org-habit-show-all-today t)
   (setq org-habit-show-habits-only-for-today nil)
 
-  ; Do I need this?
+  ;(add-to-list 'org-latex-packages-alist '("" "minted"))
   (add-hook 'org-mode-hook
-            (lambda () (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags-command))))
+            (lambda ()
+              ;; Org Mode Syntax Highglighting
+              (require 'ox-latex)
+              ;(add-to-list 'org-latex-packages-alist '("" "minted"))
+              (setq org-latex-listings 'minted) 
 
-  (setq org-default-notes-file (concat org-directory "~/journal.org"))
+              (setq org-latex-pdf-process
+                    '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+                      "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+                      "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+              (setq org-src-fontify-natively t)
+
+              ;; Do I need this?
+              (add-to-list 'helm-completing-read-handlers-alist '(org-set-tags-command))))
+
+  (setq org-default-notes-file (concat org-directory "~/.org/journal.gpg"))
 
   (setq org-capture-templates
         '(
           ("T" "Ten Step"
-           entry (file+headline "~/notebook.org" "Ten Step")
+           entry (file+headline "~/.org/notebook.gpg" "Ten Step")
            "* %?\n%u\n** What Happened\n** Affects My\n** My Part\n"
            )
           ("f" "Fears List"
-           entry (file+headline "~/notebook.org" "Fears List")
+           entry (file+headline "~/.org/notebook.gpg" "Fears List")
            "* %u\n %?"
            )
           ("g" "Gratitude List"
-           entry (file+headline "~/notebook.org" "Gratitude List")
+           entry (file+headline "~/.org/notebook.gpg" "Gratitude List")
            "* %u\n %?"
            )
           ("j" "Journal Entry"
-           entry (file+datetree "~/journal.org")
+           entry (file+datetree "~/.org/journal.gpg")
            "* %?"
            :empty-lines 1
            )
           ("t"
            "Todo"
            entry
-           (file+headline "~/notebook.org" "Tasks")
+           (file+headline "~/.org/notebook.gpg" "Tasks")
            "** BACKLOG %^{Todo} %^G \n:PROPERTIES:\nCreated: %U\n:END:\n%? "
            :prepend t
            :created t
            ))
         )
+
+  (defun drop-til (char xs)
+    (if (= char (car xs))
+        (cdr xs)
+        (dropTil char (cdr xs))))
+
+  (defun words (str)
+    (remove "" (split-string str " ")))
+
+  (defun unwords (xs)
+    (apply #'concatenate 'string xs))
+
+  (defun lines (str)
+    (remove "" (split-string str "\n")))
+
+  (defun decolorize (string)
+    (with-temp-buffer
+      (insert string)
+      (ansi-color-apply-on-region (point-min) (point-max))
+      (buffer-string)))
+
+  (defun split-nix-query-result (result)
+    (remove nil (cl-loop for it on (lines result) by #'cddr collect (cadr it)))
+    )
+
+  ;(defun nix-install-package ()
+  ;  (interactive)
+  ;  (let* ((query (read-from-minibuffer "Nix Search: "))
+  ;         (command (format "nix-env -qaP --description \".*%s.*\" | tee" query))
+  ;         (output-buffer (get-buffer-create "*Nix Search*"))
+  ;         (proc (start-process-shell-command "Nix Search" output-buffer command)))
+  ;    (if (process-live-p proc)
+  ;        (set-process-sentinel proc #'nix-search-sentinel)
+  ;      (message "No process running."))))
+
+  ;; Nix Sources
+  (defun nix-search ()
+    (let* ((query (read-from-minibuffer "Nix Search: "))
+           (results (decolorize (shell-command-to-string (format "nix search %s" query))))
+          (regex "^\\* \\(.*\\) (\\(.*\\))\n[\s]*\\(.*\\)$"))
+      (-map (lambda (x) (s-join " - " (cdr x))) (s-match-strings-all regex results))
+      ))
+
+  (defun nix-list-packages ()
+    (mapcar (lambda (str) (substring str 5))
+            (split-nix-query-result (shell-command-to-string "nix-env -qs | tee"))))
+
+  (defun nix-collect-garbage ()
+    (interactive)
+    (async-shell-command "nix-collect-garbage"))
+  (defun nix-uninstall-package (package)
+    (async-shell-command (format "nix-env --uninstall %s" package)))
+
+  (defcustom helm-nix-list-installed-actions
+    '(("nix-env --uninstall" . nix-uninstall-package))
+    "Actions on a list of nix packages"
+    :group 'helm
+    :type '(alist :key-type string :value-type function))
+
+  (defun helm-nix-list-installed-packages ()
+    (interactive)
+    (helm :sources (helm-build-sync-source "nix-packages"
+                     :action helm-nix-list-installed-actions
+                     :candidates (nix-list-packages))
+          :buffer "*Nix Installed Package*"
+          ))
+
+  (defun helm-nix-search-packages ()
+    (interactive)
+    (let ((command "nix-env -qa --description | tee"))
+      (helm :sources (helm-build-sync-source "nix-packages"
+                       :candidates (nix-search)
+                       )
+            :buffer "*helm nix search*")))
   )
 
-;; Do not write anything past this comment. This is where Emacs will
-;; auto-generate custom variable definitions.
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(evil-want-Y-yank-to-eol nil)
- '(org-agenda-files (quote ("~/journal.org" "~/notebook.org")))
- '(package-selected-packages
-   (quote
-    (lsp-haskell lsp-mode markdown-mode ht xterm-color web-mode utop tuareg caml tagedit slim-mode shell-pop scss-mode sass-mode pug-mode ocp-indent multi-term merlin helm-css-scss haml-mode flyspell-correct-helm flyspell-correct eshell-z eshell-prompt-extras esh-help emmet-mode elfeed-web elfeed-org elfeed-goodies ace-jump-mode noflet elfeed company-web web-completion-data auto-dictionary zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme smeargle orgit magit-gitflow magit-popup helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link evil-magit magit transient yaml-mode web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc idris-mode prop-menu company-tern dash-functional tern coffee-mode intero hlint-refactor hindent helm-hoogle helm-company helm-c-yasnippet haskell-snippets fuzzy flycheck-haskell company-statistics company-ghci company-ghc ghc haskell-mode company-cabal company cmm-mode auto-yasnippet yasnippet ac-ispell auto-complete org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download htmlize gnuplot git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter flycheck-pos-tip pos-tip flycheck diff-hl ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra lv hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
- '(safe-local-variable-values
-   (quote
-    ((intero-targets "tapl:lib" "tapl:exe:tapl-exe" "tapl:exe:typedLCI" "tapl:exe:untypedLCI" "tapl:test:tapl-test")))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 (defun dotspacemacs/emacs-custom-settings ()
   "Emacs custom settings.
 This is an auto-generated function, do not modify its content directly, use
@@ -483,15 +615,11 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(evil-want-Y-yank-to-eol nil)
- '(lsp-ui-sideline-diagnostic-max-lines 100)
+ '(haskell-tags-on-save t)
+ '(org-agenda-files (quote ("~/.org/journal.gpg" "~/.org/notebook.gpg")))
  '(package-selected-packages
    (quote
-    (lsp-haskell lsp-mode markdown-mode ht xterm-color web-mode utop tuareg caml tagedit slim-mode shell-pop scss-mode sass-mode pug-mode ocp-indent multi-term merlin helm-css-scss haml-mode flyspell-correct-helm flyspell-correct eshell-z eshell-prompt-extras esh-help emmet-mode elfeed-web elfeed-org elfeed-goodies ace-jump-mode noflet elfeed company-web web-completion-data auto-dictionary zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme smeargle orgit magit-gitflow magit-popup helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link evil-magit magit transient yaml-mode web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc idris-mode prop-menu company-tern dash-functional tern coffee-mode intero hlint-refactor hindent helm-hoogle helm-company helm-c-yasnippet haskell-snippets fuzzy flycheck-haskell company-statistics company-ghci company-ghc ghc haskell-mode company-cabal company cmm-mode auto-yasnippet yasnippet ac-ispell auto-complete org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download htmlize gnuplot git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-commit with-editor git-gutter flycheck-pos-tip pos-tip flycheck diff-hl ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra lv hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
- '(safe-local-variable-values
-   (quote
-    ((intero-targets "tapl:lib" "tapl:exe:tapl-exe" "tapl:exe:typedLCI" "tapl:exe:untypedLCI" "tapl:test:tapl-test"))))
- '(treemacs-no-png-images t))
+    (web-mode utop tuareg caml toml-mode tagedit slim-mode scss-mode sass-mode rjsx-mode racer pug-mode ocp-indent impatient-mode helm-css-scss haml-mode flycheck-rust flycheck-ocaml merlin emmet-mode dune company-web web-completion-data clojure-snippets cider-eval-sexp-fu cider sesman queue parseedn clojure-mode parseclj a cargo rust-mode lsp-haskell nix-sandbox direnv org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-cliplink org-brain org-ql transient peg ov org-super-agenda map dash-functional ts htmlize helm-org-rifle helm-org gnuplot evil-org ws-butler writeroom-mode visual-fill-column winum volatile-highlights vi-tilde-fringe uuidgen treemacs-projectile treemacs-persp treemacs-evil treemacs ht pfuture toc-org symon symbol-overlay string-inflection spaceline-all-the-icons all-the-icons memoize spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode password-generator paradox spinner overseer org-bullets open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-xref helm-themes helm-swoop helm-purpose window-purpose imenu-list helm-projectile projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio flycheck-package package-lint flycheck pkg-info epl let-alist flycheck-elsa flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state iedit evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens smartparens paredit evil-args evil-anzu anzu eval-sexp-fu elisp-slime-nav editorconfig dumb-jump f dash s devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile packed aggressive-indent ace-window ace-link ace-jump-helm-line helm avy helm-core popup which-key use-package pcre2el org-plus-contrib hydra lv hybrid-mode font-lock+ evil goto-chg undo-tree dotenv-mode diminish bind-map bind-key async))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
