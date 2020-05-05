@@ -504,15 +504,15 @@ you should place your code here."
   (setq org-capture-templates
         '(
           ("T" "Ten Step"
-           entry (file+headline "~/.org/notebook.gpg" "Ten Step")
+           entry (file+headline "~/.org/aa.gpg" "Ten Step")
            "* %?\n%u\n** What Happened\n** Affects My\n** My Part\n"
            )
           ("f" "Fears List"
-           entry (file+headline "~/.org/notebook.gpg" "Fears List")
+           entry (file+headline "~/.org/aa.gpg" "Fears List")
            "* %u\n %?"
            )
           ("g" "Gratitude List"
-           entry (file+headline "~/.org/notebook.gpg" "Gratitude List")
+           entry (file+headline "~/.org/aa.gpg" "Gratitude List")
            "* %u\n %?"
            )
           ("j" "Journal Entry"
