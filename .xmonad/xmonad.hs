@@ -51,14 +51,18 @@ import Data.Semigroup
 ----------------------- Theme -----------------------
 -----------------------------------------------------
 
+background = "#2d2d2d"
+altBackground = "#333333"
+currentLine = "393939"
+selection = "#515151"
+foreground = "#cccccc"
+comment = "#f27771"
+
+
 base03  = "#002b36"
 base02  = "#073642"
-base01  = "#586e75"
 base00  = "#657b83"
 base0   = "#839496"
-base1   = "#93a1a1"
-base2   = "#eee8d5"
-base3   = "#fdf6e3"
 yellow  = "#b58900"
 orange  = "#cb4b16"
 red     = "#dc322f"
@@ -84,10 +88,10 @@ myTabTheme = def
     { fontName              = myFont
     , activeColor           = active
     , inactiveColor         = base02
-    , activeBorderColor     = active
-    , inactiveBorderColor   = base02
-    , activeTextColor       = base03
-    , inactiveTextColor     = base00
+    , activeBorderColor     = green
+    , inactiveBorderColor   = background
+    , activeTextColor       = foreground
+    , inactiveTextColor     = comment
 }
 
 topBarTheme = def
@@ -290,9 +294,9 @@ myKeys c = mkKeymap c $
     , ("<XF86AudioMute>",        toggleMute)        -- Mute/Unmute amixer
     , ("<XF86AudioRaiseVolume>", volumeUp)          -- Increase amixer volume
     , ("<XF86AudioLowerVolume>", volumeDown)        -- Decrease amixer volume
-    , ("M-i",                    projectPrompt)     -- dynamicProjects prompt
+    --, ("M-i",                    projectPrompt)     -- dynamicProjects prompt
     -- Emoji Insert Prompt :: NOT WORKING
-    , ("M-u",                    unicodePrompt "~/.bin/unicode" promptConfig)
+    , ("M-u",                    unicodePrompt "~/.local/scripts/emoji" promptConfig)
     ] ++
 
     ------------------------------
