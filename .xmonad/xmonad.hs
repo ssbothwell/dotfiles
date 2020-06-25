@@ -72,10 +72,10 @@ blue    = "#268bd2"
 cyan    = "#2aa198"
 green   = "#859900"
 
-active       = blue
-activeWarn   = red
+active       = red
+activeWarn   = blue
 inactive     = base02
-focusColor   = blue
+focusColor   = red
 unfocusColor = base02
 
 myFont = "xft:Meslo LG M:style=Regular:size=12"
