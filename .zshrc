@@ -9,6 +9,10 @@ CABAL="${HOME}/.cabal/bin"
 
 export PATH="${PATH}:${SCRIPTS}:${LOCAL}:${GEM}:${NODE}:${XMONAD}:${YARN}:${CABAL}"
 
+# Set Vim as default editor (for git etc)
+export VISUAL=vim
+export EDITOR="$VISUAL"
+
 if [[ $HOST == "wl-sbothwe-mac" ]]; then
     source $HOME/.profile
 fi

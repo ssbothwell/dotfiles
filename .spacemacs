@@ -49,7 +49,6 @@ values."
      git
      helm
      (haskell :variables haskell-process-type 'cabal-new-repl haskell-completion-backend 'ghci)
-     ;(haskell :variables haskell-completion-backend 'lsp)
      idris
      (javascript :variables tern-command '("~/.local/bin/tern"))
      lsp
@@ -336,6 +335,15 @@ explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
   (xclip-mode 1)
 
+  (setq idris-interpreter-path "idris")
+  (setq idris-load-packages "contrib base prelude")
+  (add-hook 'idris-mode-hook 'direnv-mode)
+
+  ;;; Clojure ;;;
+
+  (add-hook 'clojure-mode-hook 'direnv-mode)
+  (setq cider-clojure-cli-global-options "-C:test")
+
   ;;; Haskell Mode
 
   (setq default-nix-wrapper
@@ -355,6 +363,7 @@ you should place your code here."
           (apply default-nix-wrapper (list (append args (list "--ghc-option" "-Wwarn"))))
           )
         )
+
   ;; Haskell repl session that runs in the background
   (setq haskell-process-wrapper-function haskell-nix-wrapper)
 
@@ -402,14 +411,13 @@ you should place your code here."
    web-mode-code-indent-offset 2
    web-mode-attr-indent-offset 2)
 
-
   (with-eval-after-load 'web-mode
     (add-to-list 'web-mode-indentation-params '("lineup-args" . nil))
     (add-to-list 'web-mode-indentation-params '("lineup-concats" . nil))
     (add-to-list 'web-mode-indentation-params '("lineup-calls" . nil)))
 
   ;; Keybindings
-  (add-hook 'haskell-mode-hook 
+  (add-hook 'haskell-mode-hook
             (lambda ()  (spacemacs/set-leader-keys-for-major-mode 'haskell-mode
                           "ht" 'haskell-mode-show-type-at))
             99)
@@ -458,6 +466,10 @@ you should place your code here."
     (lambda ()
       (interactive)
       (insert " <=< ")))
+
+  (define-key evil-insert-state-map
+    (kbd "C-w")
+    'other-window)
 
   ;; Org Mode
   (setq org-todo-keywords

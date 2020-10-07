@@ -3,6 +3,7 @@ import XMonad
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.DynamicProperty
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.EwmhDesktops
 
 import XMonad.Util.EZConfig
 import XMonad.Util.NamedScratchpad
@@ -41,10 +42,14 @@ import XMonad.Prompt.Unicode
 
 import System.IO
 import System.Exit
+
+import Control.Monad
+
 import qualified Data.Map as M
 import Data.Char (toLower)
-import Data.List (isInfixOf, intersperse)
+import Data.List (isInfixOf, intersperse, nub)
 import Data.Semigroup
+import Data.Maybe (maybeToList)
 
 
 -----------------------------------------------------
@@ -392,7 +397,24 @@ myConfig xmproc = def
     , focusedBorderColor    = myFocusedBorderColor
     }
 
+addSupported :: [String] -> X ()
+addSupported props = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_SUPPORTED"
+    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    newSupportedList <- mapM (fmap fromIntegral . getAtom) props
+    io $ do
+        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
+        changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
+
+setFullscreenSupported :: X ()
+setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
+
+ewmhFullscreen :: XConfig a -> XConfig a
+ewmhFullscreen c = c { startupHook     = startupHook c <+> setFullscreenSupported
+                     , handleEventHook = handleEventHook c <+> fullscreenEventHook }
+
 main :: IO ()
 main = do
     xmproc <- spawnPipe "xmobar ~/.xmobarrc"
-    xmonad . docks . withNavigation2DConfig myNav2DConf $ myConfig xmproc
+    xmonad . ewmhFullscreen . ewmh . docks . withNavigation2DConfig myNav2DConf $ myConfig xmproc
