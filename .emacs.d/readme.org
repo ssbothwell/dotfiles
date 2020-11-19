@@ -2,6 +2,7 @@
 #+AUTHOR: Solomon Bothwell and Reed Mullanix and AcidBurn
 #+PROPERTY: header-args :tangle yes :results silent
 #+TOC: true* Setup
+#+STARTUP: fold
 
 This emacs config is based on Reed's config.
 
@@ -100,7 +101,9 @@ This emacs config is based on Reed's config.
   Never, ever use tabs.
   #+BEGIN_SRC emacs-lisp
     (add-hook 'prog-mode-hook (lambda ()
-                                (setq indent-tabs-mode nil)))
+                                (setq indent-tabs-mode nil)
+                                (setq-default tab-width 2)
+                                ))
   #+END_SRC
 
   Make 'yes or no' prompts shorter.
@@ -155,7 +158,7 @@ This emacs config is based on Reed's config.
     (add-hook 'prog-mode-hook 'linum-mode 'smartparens-mode)
   #+END_SRC
 
-  Add smart parents to all programming modes
+  Add smart parens to all programming modes
   #+BEGIN_SRC emacs-lisp
     (add-hook 'prog-mode-hook 'smartparens-mode)
   #+END_SRC
@@ -493,7 +496,7 @@ This emacs config is based on Reed's config.
 
      (defun open-nixos-config ()
        (interactive)
-       (find-file "/etc/nixos/configuration.nix"))
+       (find-file "/sudo::/etc/nixos/configuration.nix"))
 
 
      (general-global-menu-definer "file" "f"
@@ -570,13 +573,21 @@ This emacs config is based on Reed's config.
     (use-package htmlize
       :straight t)
 
-    (require 'ox-md)
+    (use-package ox-pandoc
+      :straight t)
+
+    ;(require 'ox-pandoc)
   #+END_SRC
 
   Lets enable org templates for easy insertion of codeblocks
   #+BEGIN_SRC emacs-lisp
     (require 'org-tempo)
   #+END_SRC
+
+  I like to have all my headings folded on startup
+  #+begin_src emacs-lisp
+    (setq org-startup-folded t)
+  #+end_src
 *** Leader Menu
     #+BEGIN_SRC emacs-lisp
            (general-mode-leader-definer 'org-mode-map
@@ -980,6 +991,89 @@ This emacs config is based on Reed's config.
       "k" 'eshell-previous-input)
    #+END_SRC
 
+** Blog Exporting
+   The following snippet taken from [[https://emacs.stackexchange.com/questions/22476/how-can-i-use-ox-pandoc-as-a-publishing-backend-for-org-files][this stackoverflow answer]]:
+   #+begin_src emacs-lisp
+      (defun org-pandoc-html5-filter (contents _backend _info)
+       "Convert Org CONTENTS into html5 output."
+       (let ((backup-inhibited t)
+         contents-filename
+         process
+         buffer)
+         (unwind-protect
+         ;; org-pandoc runs pandoc asynchronous.  We need to
+         ;; synchronize pandoc for filtering.  `org-pandoc-run' returns
+         ;; the process needed for synchronization.  Pityingly we need
+         ;; to call `org-pandoc-run-to-buffer-or-file' which handles
+         ;; additional options and special hooks.  Therefore we
+         ;; temporarily advice `org-pandoc-run' to give us the process.
+         (cl-letf* ((original-org-pandoc-run (symbol-function 'org-pandoc-run))
+                ((symbol-function 'org-pandoc-run) (lambda (&rest a)
+                                 (setq process (apply original-org-pandoc-run a)))))
+           (setq contents-filename (make-temp-file ".tmp" nil ".org" contents))
+           (org-pandoc-run-to-buffer-or-file
+            contents-filename
+            'html5
+            nil ;; not only the sub-tree
+            t) ;; buffer
+           (while (process-live-p process)
+             (sit-for 0.5))
+           (with-current-buffer (setq buffer (process-buffer process))
+             (buffer-string)))
+           (when (file-exists-p contents-filename)
+         (delete-file contents-filename))
+           (when (buffer-live-p buffer)
+         (kill-buffer buffer))
+           )))
+
+     (org-export-define-derived-backend
+         'pandoc-html5
+         'pandoc
+       :filters-alist '((:filter-final-output . org-pandoc-html5-filter)))
+
+     (defun org-pandoc-publish-to-html (plist filename pub-dir)
+       "Publish an org file to html using ox-pandoc. Return output file name."
+       (let ((org-pandoc-format "html5"))
+         (org-publish-org-to
+          'pandoc-html5
+          filename
+          (concat "." (or (plist-get plist :html-extension)
+                  org-html-extension
+                  "html"))
+          plist
+          pub-dir)))
+   #+end_src
+
+   #+begin_src emacs-lisp
+     (defun convert-post (src-path)
+       (let* ((space " ")
+              (name (f-base src-path))
+              (target-path (concat "/home/solomon/.org/blog/build/" name "/"))
+              (title (concat "--metadata title=\"" (s-titleized-words (substring name 10)) "\""))
+              (template "--template=/home/solomon/.org/blog/template.html")
+              (cmd (concat "pandoc"
+                           space
+                           src-path
+                           space
+                           template
+                           space
+                           "-f org -t html5 -s -o"
+                           space
+                           target-path
+                           "index.html"
+                           space
+                           title)))
+         (f-mkdir target-path)
+         (shell-command cmd)
+         ))
+
+     (defun build-blog-posts ()
+       (interactive)
+       (let ((posts (f-entries "~/.org/blog/org")))
+         (mapc 'convert-post posts)
+         (shell-command "rsync -r --delete ~/.org/blog/build/ cofree.coffee:/srv/www/blog.cofree.coffee")
+         ))
+   #+end_src
 * LSP
   [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]] provides language services for quite a few languages.
   #+BEGIN_SRC emacs-lisp
@@ -1048,6 +1142,15 @@ This emacs config is based on Reed's config.
        :straight t)
    #+END_SRC
 * Languages
+** General Programming
+   Lets use smart parens to slurp and barf
+
+   #+begin_src emacs-lisp
+     (general-define-key
+      :keymaps 'prog-mode-map
+      "C-(" 'sp-forward-barf-sexp
+      "C-)" 'sp-forward-slurp-sexp)
+   #+end_src
 ** Haskell
    First, let's install =haskell-mode=. This provides syntax
    highlighting and repl interaction.
@@ -1209,6 +1312,49 @@ This emacs config is based on Reed's config.
       (general-def idris-hole-list-mode-map
         "q" 'kill-buffer-and-window)
    #+END_SRC
+** Agda
+   First, we need to load the agda-input package. This provides an input method for writing agda code.
+   #+begin_src emacs-lisp
+     (use-package agda-input
+       :straight (agda-input :type git :host github :repo "agda/agda"
+                             :branch "release-2.6.0.1"
+                             :files ("src/data/emacs-mode/agda-input.el")))
+   #+end_src
+
+Now, let’s load up agda2-mode itself.
+
+#+begin_src emacs-lisp
+  (use-package agda2-mode
+    :straight (agda2-mode :type git :host github
+                          :repo "agda/agda"
+                          :branch "release-2.6.0.1"
+                          :files ("src/data/emacs-mode/*.el"
+                                  (:exclude "agda-input.el"))))
+#+end_src
+
+Next, lets add a file template for agda files.
+
+#+begin_src emacs-lisp
+  ;(create-file-template ".*.agda$" "cubical-agda-template" 'agda2-mode)
+#+end_src
+*** Keybindings
+First, let’s add the mode keybindings.
+
+#+begin_src emacs-lisp
+  (general-mode-leader-definer 'agda2-mode-map
+    "l" '(agda2-load   :wk "load")
+    "r" '(agda2-refine :wk "refine"))
+#+end_src
+
+Next, let’s set up the jump handler.
+
+#+begin_src emacs-lisp
+  (general-local-motion-definer
+   'agda2-mode-map
+   "j" 'agda2-next-goal
+   "k" 'agda2-previous-goal
+   "d" 'agda2-goto-definition-keyboard)
+#+end_src
 ** Nix
    First, let's install =nix-mode=.
    #+BEGIN_SRC emacs-lisp
@@ -1221,3 +1367,13 @@ This emacs config is based on Reed's config.
      (use-package yaml-mode
        :straight t)
    #+END_SRC
+
+** Go
+   Lets install go-mode
+
+   #+begin_src emacs-lisp
+     (use-package go-mode
+       :straight t
+       )
+
+   #+end_src

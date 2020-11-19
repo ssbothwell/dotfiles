@@ -6,9 +6,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
 
 import XMonad.Util.EZConfig
-import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run(spawnPipe)
-import XMonad.Util.Scratchpad
 
 import XMonad.Layout.Accordion
 import XMonad.Layout.BinarySpacePartition
@@ -38,7 +36,6 @@ import XMonad.Actions.Promote
 import qualified XMonad.StackSet as W
 import XMonad.Prompt
 import XMonad.Prompt.ConfirmPrompt
-import XMonad.Prompt.Unicode
 
 import System.IO
 import System.Exit
@@ -136,7 +133,7 @@ suffixed n = renamed [AppendWords n]
 trimSuffixed :: Int -> String -> l a -> ModifiedLayout Rename l a
 trimSuffixed w n = renamed [CutWordsRight w, AppendWords n]
 
-myLayoutHook = fullScreenToggle $ flex ||| tabs
+myLayoutHook = avoidStruts $ fullScreenToggle $ flex ||| tabs
     where
         --addTopBar = noFrillsDeco shrinkText topBarTheme
         fullScreenToggle = mkToggle $ single FULL
@@ -148,7 +145,7 @@ myLayoutHook = fullScreenToggle $ flex ||| tabs
         threeCol = named "ThreeCol" $ ThreeColMid 1 (1/10) (1/2)
         tabs = named "Tabs" $ addTabs shrinkText myTabTheme Simplest
         flex = trimNamed 5 "Flex"
-             . avoidStruts
+             -- . avoidStruts
              . windowNavigation
              . addTabs shrinkText myTabTheme
              . subLayout [] (Simplest ||| Accordion)
@@ -186,71 +183,8 @@ myManageHook = composeAll
 
 
 -----------------------------------------------------
--------------------- Scratchpads --------------------
------------------------------------------------------
--- TODO: Write a function calculate the tiling/padding for these scratchpads
---  (W.RationalRect l t w h)
---  where
---    l = distance from left edge
---    t = distance from top edge
---    w = width
---    h = height
-
-upperLeft :: W.RationalRect
-upperLeft = W.RationalRect 0.005 0.01 0.4925 0.485
-
-upperRight :: W.RationalRect
-upperRight = W.RationalRect 0.5025 0.01 0.4925 0.485
-
-lowerLeft :: W.RationalRect
-lowerLeft = W.RationalRect 0.005 0.505 0.4925 0.485
-
-lowerRight :: W.RationalRect
-lowerRight = W.RationalRect 0.5025 0.505 0.4925 0.485
-
-terminal1Scratchpad :: NamedScratchpad
-terminal1Scratchpad = NS "terminal1" spawnTerm queryBool floating
-    where spawnTerm = myTerminal ++ " -name scratchpad1"
-          queryBool = resource =? "scratchpad1"
-          floating  = customFloating upperLeft
-
-terminal2Scratchpad :: NamedScratchpad
-terminal2Scratchpad = NS "terminal2" spawnTerm queryBool floating
-    where spawnTerm = myTerminal ++ " -name scratchpad2"
-          queryBool = resource =? "scratchpad2"
-          floating  = customFloating lowerLeft
-
-trelloScratchpad :: NamedScratchpad
-trelloScratchpad = NS "trello" myTrello queryBool floating
-    where queryBool = className =? "Surf"
-          floating  = customFloating lowerRight
-
-spotifyScratchpad :: NamedScratchpad
-spotifyScratchpad = NS "spotify" mySpotify queryBool doFloat
-    where queryBool = className =? "Spotify"
-
-myScratchPads :: [NamedScratchpad]
-myScratchPads = [ terminal1Scratchpad, terminal2Scratchpad, spotifyScratchpad, trelloScratchpad ]
-
-actionToggleOverlay :: X ()
-actionToggleOverlay =
-    mapM_ (namedScratchpadAction myScratchPads) ["terminal1", "terminal2", "spotify", "trello"]
-
-manageScratchPad :: ManageHook
-manageScratchPad = namedScratchpadManageHook myScratchPads
-
-spotifyFloatHook :: Event -> X All
-spotifyFloatHook = dynamicPropertyChange "WM_NAME" (title =? "Spotify" --> floating)
-    where floating  = customFloating upperRight
-
-myHandleEventHook :: Event -> X All
-myHandleEventHook = spotifyFloatHook
-
-
------------------------------------------------------
 ---------------------- Prompt -----------------------
 -----------------------------------------------------
--- TODO: FINISH THIS
 
 -- A case-insensitive substring predicate function.
 predicateFunction :: String -> String -> Bool
@@ -273,7 +207,6 @@ promptConfig = def
   , searchPredicate   = predicateFunction
 }
 
-projectPrompt     = switchProjectPrompt promptConfig
 closeWindowPrompt = confirmPrompt promptConfig "Close Window" kill
 closeXmonadPrompt = confirmPrompt promptConfig "Exit XMonad" $ io exitSuccess
 
@@ -299,9 +232,6 @@ myKeys c = mkKeymap c $
     , ("<XF86AudioMute>",        toggleMute)        -- Mute/Unmute amixer
     , ("<XF86AudioRaiseVolume>", volumeUp)          -- Increase amixer volume
     , ("<XF86AudioLowerVolume>", volumeDown)        -- Decrease amixer volume
-    --, ("M-i",                    projectPrompt)     -- dynamicProjects prompt
-    -- Emoji Insert Prompt :: NOT WORKING
-    , ("M-u",                    unicodePrompt "~/.local/scripts/emoji" promptConfig)
     ] ++
 
     ------------------------------
@@ -349,7 +279,6 @@ myKeys c = mkKeymap c $
     , ("M-\\",       spawn myBrowser)      -- Launch Browser
     , ("M-p",        spawn myLauncher)     -- Launch DMenu
     , ("M-C-p",      spawn scriptLauncher) -- Script Launcher
-    , ("M-`",        actionToggleOverlay) -- Launch Terminal
     ]
     where
         toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
@@ -378,10 +307,18 @@ myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
 ------------------------ Main -----------------------
 -----------------------------------------------------
 
+myStartupHook :: X ()
+myStartupHook = do
+    spawn "nm-applet"
+    spawn "feh --bg-scale /home/solomon/Images/Wallpapers/Vaporwave.jpg"
+    spawn "xbanish"
+    spawn "trayer --edge top --width 4 --align right --height 23 --transparent true --alpha 75 --tint 0x2d2d2d"
+    spawn "sleep 2 && kmonad .local/etc/kmonad.kbd"
+
+
 myConfig xmproc = def
-    { layoutHook            = avoidStruts myLayoutHook
-    , manageHook            = myManageHook <> manageHook def <> manageScratchPad
-    , handleEventHook       = myHandleEventHook
+    { layoutHook            = myLayoutHook
+    , manageHook            = myManageHook <> manageHook def
     , logHook               = dynamicLogWithPP xmobarPP
         { ppOutput          = hPutStrLn xmproc
         , ppLayout          = drop 18
@@ -395,6 +332,7 @@ myConfig xmproc = def
     , workspaces            = myWorkspaces
     , normalBorderColor     = myNormalBorderColor
     , focusedBorderColor    = myFocusedBorderColor
+    , startupHook           = myStartupHook
     }
 
 addSupported :: [String] -> X ()

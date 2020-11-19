@@ -52,7 +52,9 @@
       version-control t)
 
 (add-hook 'prog-mode-hook (lambda ()
-                            (setq indent-tabs-mode nil)))
+                            (setq indent-tabs-mode nil)
+                            (setq-default tab-width 2)
+                            ))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -294,7 +296,7 @@ The prefix map is named 'my-DEF-map'."
 
 (defun open-nixos-config ()
   (interactive)
-  (find-file "/etc/nixos/configuration.nix"))
+  (find-file "/sudo::/etc/nixos/configuration.nix"))
 
 
 (general-global-menu-definer "file" "f"
@@ -346,9 +348,14 @@ The prefix map is named 'my-DEF-map'."
 (use-package htmlize
   :straight t)
 
-(require 'ox-md)
+(use-package ox-pandoc
+  :straight t)
+
+;(require 'ox-pandoc)
 
 (require 'org-tempo)
+
+(setq org-startup-folded t)
 
 (general-mode-leader-definer 'org-mode-map
   ;; General
@@ -598,6 +605,84 @@ The prefix map is named 'my-DEF-map'."
  "j" 'eshell-next-input
  "k" 'eshell-previous-input)
 
+(defun org-pandoc-html5-filter (contents _backend _info)
+  "Convert Org CONTENTS into html5 output."
+  (let ((backup-inhibited t)
+    contents-filename
+    process
+    buffer)
+    (unwind-protect
+    ;; org-pandoc runs pandoc asynchronous.  We need to
+    ;; synchronize pandoc for filtering.  `org-pandoc-run' returns
+    ;; the process needed for synchronization.  Pityingly we need
+    ;; to call `org-pandoc-run-to-buffer-or-file' which handles
+    ;; additional options and special hooks.  Therefore we
+    ;; temporarily advice `org-pandoc-run' to give us the process.
+    (cl-letf* ((original-org-pandoc-run (symbol-function 'org-pandoc-run))
+           ((symbol-function 'org-pandoc-run) (lambda (&rest a)
+                            (setq process (apply original-org-pandoc-run a)))))
+      (setq contents-filename (make-temp-file ".tmp" nil ".org" contents))
+      (org-pandoc-run-to-buffer-or-file
+       contents-filename
+       'html5
+       nil ;; not only the sub-tree
+       t) ;; buffer
+      (while (process-live-p process)
+        (sit-for 0.5))
+      (with-current-buffer (setq buffer (process-buffer process))
+        (buffer-string)))
+      (when (file-exists-p contents-filename)
+    (delete-file contents-filename))
+      (when (buffer-live-p buffer)
+    (kill-buffer buffer))
+      )))
+
+(org-export-define-derived-backend
+    'pandoc-html5
+    'pandoc
+  :filters-alist '((:filter-final-output . org-pandoc-html5-filter)))
+
+(defun org-pandoc-publish-to-html (plist filename pub-dir)
+  "Publish an org file to html using ox-pandoc. Return output file name."
+  (let ((org-pandoc-format "html5"))
+    (org-publish-org-to
+     'pandoc-html5
+     filename
+     (concat "." (or (plist-get plist :html-extension)
+             org-html-extension
+             "html"))
+     plist
+     pub-dir)))
+
+(defun convert-post (src-path)
+  (let* ((space " ")
+         (name (f-base src-path))
+         (target-path (concat "/home/solomon/.org/blog/build/" name "/"))
+         (title (concat "--metadata title=\"" (s-titleized-words (substring name 10)) "\""))
+         (template "--template=/home/solomon/.org/blog/template.html")
+         (cmd (concat "pandoc"
+                      space
+                      src-path
+                      space
+                      template
+                      space
+                      "-f org -t html5 -s -o"
+                      space
+                      target-path
+                      "index.html"
+                      space
+                      title)))
+    (f-mkdir target-path)
+    (shell-command cmd)
+    ))
+
+(defun build-blog-posts ()
+  (interactive)
+  (let ((posts (f-entries "~/.org/blog/org")))
+    (mapc 'convert-post posts)
+    (shell-command "rsync -r --delete ~/.org/blog/build/ cofree.coffee:/srv/www/blog.cofree.coffee")
+    ))
+
 (use-package lsp-mode
   :straight t
   :commands lsp
@@ -641,6 +726,11 @@ The prefix map is named 'my-DEF-map'."
 
 (use-package lsp-treemacs
   :straight t)
+
+(general-define-key
+ :keymaps 'prog-mode-map
+ "C-(" 'sp-forward-barf-sexp
+ "C-)" 'sp-forward-slurp-sexp)
 
 (use-package haskell-mode
   :straight t
@@ -769,9 +859,37 @@ The prefix map is named 'my-DEF-map'."
  (general-def idris-hole-list-mode-map
    "q" 'kill-buffer-and-window)
 
+(use-package agda-input
+  :straight (agda-input :type git :host github :repo "agda/agda"
+                        :branch "release-2.6.0.1"
+                        :files ("src/data/emacs-mode/agda-input.el")))
+
+(use-package agda2-mode
+  :straight (agda2-mode :type git :host github
+                        :repo "agda/agda"
+                        :branch "release-2.6.0.1"
+                        :files ("src/data/emacs-mode/*.el"
+                                (:exclude "agda-input.el"))))
+
+;(create-file-template ".*.agda$" "cubical-agda-template" 'agda2-mode)
+
+(general-mode-leader-definer 'agda2-mode-map
+  "l" '(agda2-load   :wk "load")
+  "r" '(agda2-refine :wk "refine"))
+
+(general-local-motion-definer
+ 'agda2-mode-map
+ "j" 'agda2-next-goal
+ "k" 'agda2-previous-goal
+ "d" 'agda2-goto-definition-keyboard)
+
 (use-package nix-mode
   :straight t
   :init (add-hook 'nix-mode 'direnv-mode))
 
 (use-package yaml-mode
   :straight t)
+
+(use-package go-mode
+  :straight t
+  )

@@ -1,18 +1,20 @@
 Config
-    { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true,FontAwesome:size=12"
+    { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true"
+    , additionalFonts = ["xft:Font Awesome 5 Free Solid:style=Solid:size=12"]
     , allDesktops  = False -- show on all desktops
     , pickBroadest = True -- choose widest display (multi-monitor)
-    , bgColor      = "#002B36"
+    , bgColor      = "#2d2d2d"
     , fgColor      = "#585858"
-    , position     = Static { xpos = 0, ypos = 3, width = 1840, height = 20 } --TopW L 95
+    , alpha        = 175
+    , position     = Static { xpos = 0, ypos = 0, width = 1920, height = 23 } --TopW L 95
     , commands     =
         [ Run StdinReader
-        , Run DiskU [("/"," <used>i/<size>")] ["-L","20","-H","50","-m","1","-p","3"] 20
+        , Run DiskU [("/","<fn=1></fn> <used>/<size>")] ["-L","20","-H","50","-m","1","-p","3"] 20
         , Run Volume "default" "Master"
-            [ "-t", "<status> <volume>%" , "--", "-O", "", "-o", "" , "-C", "#585858" ] 1
-        , Run Com "acpiPowerStatus" [] "battery" 100
+            [ "-t", "<status> <volume>%" , "--", "-O", "<fn=1></fn>", "-o", "<fn=1></fn>" , "-C", "#585858" ] 1
+        , Run Com "acpiPower" [] "battery" 100
         , Run Date "<fc=#ee9a00>%a %b %_d %Y %I:%M %p</fc>" "date" 9
-        , Run Wireless "wlp4s0" [ "--template" , " <essid>" ] 10
+        , Run Wireless "wlp4s0" [ "--template" , "<fn=1></fn> <essid>" ] 10
         ]
-    , template = "%StdinReader% }{ %disku% %default:Master% %battery% %wlp4s0wi% %date%"
+    , template = "%StdinReader% }{ %disku% %default:Master% %battery% %wlp4s0wi% %date%         "
     }
