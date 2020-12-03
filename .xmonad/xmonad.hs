@@ -6,10 +6,8 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
 
 import XMonad.Util.EZConfig
-import XMonad.Util.Run(spawnPipe)
+import XMonad.Util.Run (spawnPipe)
 
-import XMonad.Layout.Accordion
-import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.Gaps
 import XMonad.Layout.Hidden
 import XMonad.Layout.LayoutCombinators hiding ((|||))
@@ -47,73 +45,52 @@ import Data.Char (toLower)
 import Data.List (isInfixOf, intersperse, nub)
 import Data.Semigroup
 import Data.Maybe (maybeToList)
+import Data.Function (on)
 
-
------------------------------------------------------
------------------------ Theme -----------------------
------------------------------------------------------
+-------------
+--- Theme ---
+-------------
 
 background = "#2d2d2d"
 altBackground = "#333333"
-currentLine = "393939"
+currentLine = "#393939"
 selection = "#515151"
 foreground = "#cccccc"
-comment = "#f27771"
+comment = "#999999"
 
-
-base03  = "#002b36"
-base02  = "#073642"
-base00  = "#657b83"
-base0   = "#839496"
-yellow  = "#b58900"
-orange  = "#cb4b16"
-red     = "#dc322f"
-magenta = "#d33682"
-violet  = "#6c71c4"
-blue    = "#268bd2"
-cyan    = "#2aa198"
-green   = "#859900"
+red    = "#f2777a"
+orange = "#f99157"
+yellow = "#ffcc66"
+green  = "#99cc99"
+aqua   = "#66cccc"
+blue   = "#6699cc"
+purple = "#cc99cc"
 
 active       = red
 activeWarn   = blue
-inactive     = base02
+inactive     = orange
 focusColor   = red
-unfocusColor = base02
+unfocusColor = orange
 
 myFont = "xft:Meslo LG M:style=Regular:size=12"
 
--- Border Colors
-myNormalBorderColor = "#585858"
-myFocusedBorderColor = "#d70000"
+myNormalBorderColor = blue
+myFocusedBorderColor = red
 
 myTabTheme = def
     { fontName              = myFont
-    , activeColor           = active
-    , inactiveColor         = base02
-    , activeBorderColor     = green
+    , activeColor           = altBackground
+    , inactiveColor         = background
+    , activeBorderColor     = altBackground
     , inactiveBorderColor   = background
     , activeTextColor       = foreground
     , inactiveTextColor     = comment
 }
 
-topBarTheme = def
-    { fontName              = myFont
-    , inactiveBorderColor   = base03
-    , inactiveColor         = base03
-    , inactiveTextColor     = base03
-    , activeBorderColor     = active
-    , activeColor           = active
-    , activeTextColor       = active
-    , urgentBorderColor     = red
-    , urgentTextColor       = yellow
-    , decoHeight            = topbar
-}
+---------------
+--- Layouts ---
+---------------
 
------------------------------------------------------
----------------------- Layouts ----------------------
------------------------------------------------------
-
--- sizes
 gap    = 4
 topbar = 10
 border = 0
@@ -122,7 +99,6 @@ status = 20
 
 mySpacing = spacing gap
 myGaps = gaps [(U, gap),(D, gap),(L, gap),(R, gap)]
-
 
 trimNamed :: Int -> String -> l a -> ModifiedLayout Rename l a
 trimNamed w n = renamed [CutWordsLeft w, PrependWords n]
@@ -135,7 +111,6 @@ trimSuffixed w n = renamed [CutWordsRight w, AppendWords n]
 
 myLayoutHook = avoidStruts $ fullScreenToggle $ flex ||| tabs
     where
-        --addTopBar = noFrillsDeco shrinkText topBarTheme
         fullScreenToggle = mkToggle $ single FULL
         nmaster = 1     -- The default number of windows in the master pane
         ratio   = 1/2   -- Default proportion of screen occupied by master pane
@@ -145,74 +120,63 @@ myLayoutHook = avoidStruts $ fullScreenToggle $ flex ||| tabs
         threeCol = named "ThreeCol" $ ThreeColMid 1 (1/10) (1/2)
         tabs = named "Tabs" $ addTabs shrinkText myTabTheme Simplest
         flex = trimNamed 5 "Flex"
-             -- . avoidStruts
              . windowNavigation
              . addTabs shrinkText myTabTheme
-             . subLayout [] (Simplest ||| Accordion)
-             $ ifWider smallMonResWidth wideLayouts standardLayouts
+             . subLayout [] Simplest
+             $ standardLayouts
+             -- $ ifWider smallMonResWidth wideLayouts standardLayouts
              where
                  wideThreeCol = suffixed "Wide 3Col" (ThreeColMid 1 (1/20) (1/2))
-                 wideBsp      = trimSuffixed 1 "Wide BSP" (hiddenWindows emptyBSP)
-                 wideLayouts  = mySpacing . myGaps $ wideThreeCol ||| wideBsp
+                 wideLayouts  = mySpacing . myGaps $ wideThreeCol
                  standardLayouts = mySpacing . myGaps . named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
--- Launchers
 myBrowser      = "/usr/bin/firefox"
 myTerminal     = "/home/solomon/.local/bin/termonad"
-scriptLauncher = "/home/solomon/.scripts/scriptLauncher.py"
-myTrello       = "/usr/bin/surf www.trello.com"
-mySpotify      = "/usr/bin/spotify"
 myLauncher     = mconcat $ intersperse " " [path, font, bgcolor, fgcolor, sfcolor, sbcolor]
     where
         path = "dmenu_run"
-        font = "-fn \"xft:Bitstream Vera Sans Mono:size=11:bold:antialias=true\""
-        bgcolor = "-nb " <> show base03
-        fgcolor = "-nf " <> show green
-        sbcolor = "-sb " <> show base02
-        sfcolor = "-sf " <> show base0
--- Workspaces
+        font = "-fn \"" <> myFont <> "\""
+        bgcolor = "-nb " <> show background
+        fgcolor = "-nf " <> show orange
+        sbcolor = "-sb " <> show background
+        sfcolor = "-sf " <> show purple
+
 myWorkspaces = ["1:term","2:web", "3:slack"] ++ map show [4..9]
 
--- Window Rules
+
 myManageHook = composeAll
-    [ className =? "Firefox"     --> doShift "2:web"
-    , className =? "Slack"       --> doShift "3:slack"
-    , className =? "stalonetray" --> doIgnore
+    [ className =? "Firefox" --> doShift "2:web"
+    , className =? "Slack"   --> doShift "3:slack"
+    , className =? "trayer"  --> doIgnore
     , manageDocks
     ]
 
-
------------------------------------------------------
----------------------- Prompt -----------------------
------------------------------------------------------
-
--- A case-insensitive substring predicate function.
-predicateFunction :: String -> String -> Bool
-predicateFunction x y = lc x `isInfixOf` lc y where lc = map toLower
+--------------
+--- Prompt ---
+--------------
 
 promptConfig :: XPConfig
 promptConfig = def
-  { position          = CenteredAt (1/3) (1/2)
-  , height            = 30
-  , font              = "xft:dejavu sans mono:size=12"
-  , bgColor           = "#002b36"
-  , fgColor           = "#93a1a1"
+  { position          = Top
+  , height            = 20
+  , font              = myFont
+  , bgColor           = background
+  , fgColor           = orange
   , fgHLight          = "#d33682"
   , bgHLight          = "#073642"
-  , borderColor       = red
-  , promptBorderWidth = 1
+  , promptBorderWidth = 0
   , maxComplRows      = Just 12
   , alwaysHighlight   = True
   , promptKeymap      = emacsLikeXPKeymap
-  , searchPredicate   = predicateFunction
+  , searchPredicate   = isInfixOf `on` (map toLower)
 }
 
 closeWindowPrompt = confirmPrompt promptConfig "Close Window" kill
 closeXmonadPrompt = confirmPrompt promptConfig "Exit XMonad" $ io exitSuccess
 
------------------------------------------------------
--------------------- Keybindings --------------------
------------------------------------------------------
+-------------------
+--- Keybindings ---
+-------------------
 
 workSpaceNav :: XConfig a -> [(String, X ())]
 workSpaceNav c = do
@@ -232,7 +196,7 @@ myKeys c = mkKeymap c $
     , ("<XF86AudioMute>",        toggleMute)        -- Mute/Unmute amixer
     , ("<XF86AudioRaiseVolume>", volumeUp)          -- Increase amixer volume
     , ("<XF86AudioLowerVolume>", volumeDown)        -- Decrease amixer volume
-    ] ++
+    ] <>
 
     ------------------------------
     -- Navigation
@@ -257,8 +221,8 @@ myKeys c = mkKeymap c $
     , ("M-[",       sendMessage Shrink)
     , ("M-]",       sendMessage Expand)
     , ("M-<Space>", sendMessage NextLayout)
-    -- Sink floated window
-    , ("M-t",       withFocused $ windows . W.sink)
+    -- Float/Sink floated window
+    , ("M-t",       withFocused toggleFloat)
     -- Full Screen a window
     , ("M-<F11>",   sendMessage $ Toggle FULL)
     -- Promote window to master
@@ -270,7 +234,7 @@ myKeys c = mkKeymap c $
     , ("M-C-k",     sendMessage . pullGroup $ U)
     -- Unmerge a window
     , ("M-g",       withFocused (sendMessage . UnMerge))
-    ] ++ workSpaceNav c ++
+    ] <> workSpaceNav c <>
 
     ------------------------------
     -- Launchers
@@ -278,14 +242,16 @@ myKeys c = mkKeymap c $
     [ ("M-<Return>", spawn myTerminal)     -- Launch Terminal
     , ("M-\\",       spawn myBrowser)      -- Launch Browser
     , ("M-p",        spawn myLauncher)     -- Launch DMenu
-    , ("M-C-p",      spawn scriptLauncher) -- Script Launcher
     ]
     where
-        toggleMute         = spawn "amixer -D pulse set Master 1+ toggle"
-        volumeUp           = spawn "amixer set Master 5%+"
-        volumeDown         = spawn "amixer set Master 5%-"
-        recompile          = spawn "xmonad --recompile && xmonad --restart"
-
+        toggleMute    = spawn "amixer -D pulse set Master 1+ toggle"
+        volumeUp      = spawn "amixer set Master 5%+"
+        volumeDown    = spawn "amixer set Master 5%-"
+        recompile     = spawn "xmonad --recompile && xmonad --restart"
+        toggleFloat w = windows $ \s ->
+            if M.member w (W.floating s)
+            then W.sink w s
+            else W.float w (W.RationalRect (1/6) (1/6) (2/3) (2/3)) s
 myNav2DConf = def
     { defaultTiledNavigation = centerNavigation
     , floatNavigation        = centerNavigation
@@ -303,9 +269,9 @@ myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
                                       >> windows W.shiftMaster) -- Set window to float and resize by dragging
     ]
 
------------------------------------------------------
------------------------- Main -----------------------
------------------------------------------------------
+------------
+--- Main ---
+------------
 
 myStartupHook :: X ()
 myStartupHook = do
@@ -313,6 +279,7 @@ myStartupHook = do
     spawn "feh --bg-scale /home/solomon/Images/Wallpapers/Vaporwave.jpg"
     spawn "xbanish"
     spawn "trayer --edge top --width 4 --align right --height 23 --transparent true --alpha 75 --tint 0x2d2d2d"
+    spawn "dunst"
     spawn "sleep 2 && kmonad .local/etc/kmonad.kbd"
 
 
@@ -320,10 +287,11 @@ myConfig xmproc = def
     { layoutHook            = myLayoutHook
     , manageHook            = myManageHook <> manageHook def
     , logHook               = dynamicLogWithPP xmobarPP
-        { ppOutput          = hPutStrLn xmproc
+        { ppCurrent         = xmobarColor yellow mempty
+        , ppOutput          = hPutStrLn xmproc
         , ppLayout          = drop 18
-        , ppTitle           = xmobarColor "green" "" . shorten 250
-        , ppHidden          = \ws -> if ws == "NSP" then "" else ws
+        , ppTitle           = xmobarColor foreground mempty . shorten 85
+        , ppHidden          = \ws -> if ws == "NSP" then mempty else ws
         , ppHiddenNoWindows = const mempty
         }
     , modMask               = mod4Mask

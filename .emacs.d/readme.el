@@ -298,6 +298,13 @@ The prefix map is named 'my-DEF-map'."
   (interactive)
   (find-file "/sudo::/etc/nixos/configuration.nix"))
 
+(defun open-xmonad-config ()
+  (interactive)
+  (find-file "~/.xmonad/xmonad.hs"))
+
+(defun open-xmobar-config ()
+  (interactive)
+  (find-file "~/.xmobarrc"))
 
 (general-global-menu-definer "file" "f"
                              "f" '(counsel-find-file        :wk "find file")
@@ -309,9 +316,11 @@ The prefix map is named 'my-DEF-map'."
 "." '(counsel-find-file :wk "find file"))
 
 (general-global-menu-definer "configs" "f e"
-                             "c" '(open-nixos-config   :wk "nixos config")
-                             "d" '(open-config-file    :wk "config file")
-                             "R" '(compile-config-file :wk "compile config file"))
+                             "c" '(open-nixos-config   :wk "configuration.nix")
+                             "d" '(open-config-file    :wk "emacs")
+                             "R" '(compile-config-file :wk "compile emacs config")
+                             "x" '(open-xmonad-config  :wk "xmonad")
+                             "X" '(open-xmobar-config  :wk "xmobar"))
 
 (defun open-notebook ()
   (interactive)

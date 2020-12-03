@@ -1,10 +1,10 @@
 Config
-    { font = "xft:Bitstream Vera Sans Mono:size=12:bold:antialias=true"
-    , additionalFonts = ["xft:Font Awesome 5 Free Solid:style=Solid:size=12"]
+    { font = "xft:Bitstream Vera Sans Mono:size=11:bold:antialias=true"
+    , additionalFonts = ["xft:Font Awesome 5 Free Solid:style=Solid:size=11"]
     , allDesktops  = False -- show on all desktops
     , pickBroadest = True -- choose widest display (multi-monitor)
     , bgColor      = "#2d2d2d"
-    , fgColor      = "#585858"
+    , fgColor      = "#515151"
     , alpha        = 175
     , position     = Static { xpos = 0, ypos = 0, width = 1920, height = 23 } --TopW L 95
     , commands     =
@@ -13,8 +13,8 @@ Config
         , Run Volume "default" "Master"
             [ "-t", "<status> <volume>%" , "--", "-O", "<fn=1></fn>", "-o", "<fn=1></fn>" , "-C", "#585858" ] 1
         , Run Com "acpiPower" [] "battery" 100
-        , Run Date "<fc=#ee9a00>%a %b %_d %Y %I:%M %p</fc>" "date" 9
+        , Run Date "<fc=#ffcc66>%a %b %_d %Y %I:%M %p</fc>" "date" 9
         , Run Wireless "wlp4s0" [ "--template" , "<fn=1></fn> <essid>" ] 10
         ]
-    , template = "%StdinReader% }{ %disku% %default:Master% %battery% %wlp4s0wi% %date%         "
+    , template = "%StdinReader% }{ %disku% %default:Master% %battery% %wlp4s0wi% %date%          "
     }
