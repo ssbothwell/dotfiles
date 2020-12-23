@@ -18,7 +18,7 @@ hask-new () {
         cp $HOME/.local/etc/release.nix .
         cp $HOME/.local/etc/shell.nix .
         cabal2nix . > default.nix
-        echo use_nix > .envrc
+        lorri init
         git init
         git add -A
         git commit -m "initial commit"

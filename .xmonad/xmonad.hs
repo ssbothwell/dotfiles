@@ -20,14 +20,14 @@ import XMonad.Layout.PerScreen
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Renamed
 import XMonad.Layout.Simplest
+import XMonad.Layout.SimpleFloat
 import XMonad.Layout.Spacing
 import XMonad.Layout.SubLayouts
 import XMonad.Layout.Tabbed
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.WindowNavigation
 
-import XMonad.Actions.CycleWS
-import XMonad.Actions.DynamicProjects
+import XMonad.Actions.CopyWindow
 import XMonad.Actions.Navigation2D
 import XMonad.Actions.Promote
 
@@ -43,7 +43,6 @@ import Control.Monad
 import qualified Data.Map as M
 import Data.Char (toLower)
 import Data.List (isInfixOf, intersperse, nub)
-import Data.Semigroup
 import Data.Maybe (maybeToList)
 import Data.Function (on)
 
@@ -122,7 +121,7 @@ myLayoutHook = avoidStruts $ fullScreenToggle $ flex ||| tabs
         flex = trimNamed 5 "Flex"
              . windowNavigation
              . addTabs shrinkText myTabTheme
-             . subLayout [] Simplest
+             . subLayout [] (Simplest ||| simpleFloat)
              $ standardLayouts
              -- $ ifWider smallMonResWidth wideLayouts standardLayouts
              where
@@ -171,7 +170,7 @@ promptConfig = def
   , searchPredicate   = isInfixOf `on` (map toLower)
 }
 
-closeWindowPrompt = confirmPrompt promptConfig "Close Window" kill
+closeWindowPrompt = confirmPrompt promptConfig "Close Window" kill1
 closeXmonadPrompt = confirmPrompt promptConfig "Exit XMonad" $ io exitSuccess
 
 -------------------
@@ -180,8 +179,6 @@ closeXmonadPrompt = confirmPrompt promptConfig "Exit XMonad" $ io exitSuccess
 
 workSpaceNav :: XConfig a -> [(String, X ())]
 workSpaceNav c = do
-    -- mod-[1..9], Switch to workspace N
-    -- mod-shift-[1..9], Move client to workspace N
     (i, j) <- zip (map show [1..9]) $ XMonad.workspaces c
     (m, f) <- [("M-", W.greedyView), ("M-S-", W.shift)]
     return (m++i, windows $ f j)
@@ -221,8 +218,10 @@ myKeys c = mkKeymap c $
     , ("M-[",       sendMessage Shrink)
     , ("M-]",       sendMessage Expand)
     , ("M-<Space>", sendMessage NextLayout)
+    , ("M-C-<Space>", toSubl NextLayout)
     -- Float/Sink floated window
-    , ("M-t",       withFocused toggleFloat)
+    , ("M-t",       withFocused toggleFloat >> killAllOtherCopies)
+    , ("M-C-t",     withFocused toggleSticky)
     -- Full Screen a window
     , ("M-<F11>",   sendMessage $ Toggle FULL)
     -- Promote window to master
@@ -235,20 +234,20 @@ myKeys c = mkKeymap c $
     -- Unmerge a window
     , ("M-g",       withFocused (sendMessage . UnMerge))
     ] <> workSpaceNav c <>
-
-    ------------------------------
-    -- Launchers
-    ------------------------------
     [ ("M-<Return>", spawn myTerminal)     -- Launch Terminal
     , ("M-\\",       spawn myBrowser)      -- Launch Browser
     , ("M-p",        spawn myLauncher)     -- Launch DMenu
     ]
     where
-        toggleMute    = spawn "amixer -D pulse set Master 1+ toggle"
-        volumeUp      = spawn "amixer set Master 5%+"
-        volumeDown    = spawn "amixer set Master 5%-"
-        recompile     = spawn "xmonad --recompile && xmonad --restart"
-        toggleFloat w = windows $ \s ->
+        toggleMute     = spawn "amixer -D pulse set Master 1+ toggle"
+        volumeUp       = spawn "amixer set Master 5%+"
+        volumeDown     = spawn "amixer set Master 5%-"
+        recompile      = spawn "xmonad --recompile && xmonad --restart"
+        toggleSticky w = windows $ \s ->
+            if M.member w (W.floating s)
+            then copyToAll s
+            else s
+        toggleFloat w  = windows $ \s ->
             if M.member w (W.floating s)
             then W.sink w s
             else W.float w (W.RationalRect (1/6) (1/6) (2/3) (2/3)) s
@@ -260,13 +259,9 @@ myNav2DConf = def
     , unmappedWindowRect     = pure ("Full", singleWindowRect)
     }
 
--- Mouse Bindings
 myMouseBindings XConfig {XMonad.modMask = modm} = M.fromList
-    [ ((modm, button1), \w -> focus w >> mouseMoveWindow w
-                                      >> windows W.shiftMaster) -- Set window to float and move by dragging
-    , ((modm, button2), \w -> focus w >> windows W.shiftMaster) -- Raise the window to the top of the stack
-    , ((modm, button3), \w -> focus w >> mouseResizeWindow w
-                                      >> windows W.shiftMaster) -- Set window to float and resize by dragging
+    [ ((modm, button1), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster) -- Set window to float and move by dragging
+    , ((modm .|. controlMask, button1), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster) -- Set window to float and resize by dragging
     ]
 
 ------------
@@ -296,7 +291,7 @@ myConfig xmproc = def
         }
     , modMask               = mod4Mask
     , keys                  = myKeys
-    --, myMouseBindings       = myMouseBindings
+    , mouseBindings       = myMouseBindings
     , workspaces            = myWorkspaces
     , normalBorderColor     = myNormalBorderColor
     , focusedBorderColor    = myFocusedBorderColor
@@ -307,7 +302,7 @@ addSupported :: [String] -> X ()
 addSupported props = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
-    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    -- fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
     newSupportedList <- mapM (fmap fromIntegral . getAtom) props
     io $ do
         supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r

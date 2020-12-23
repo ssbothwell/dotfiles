@@ -8,8 +8,5 @@ alias cofree-coffee="ssh solomon@cofree.coffee"
 alias ours="ssh solomon@142.93.159.251"
 
 # Applications
-alias emacs='emacs -nw'
-alias mutt=neomutt
 alias ls="exa -l"
-alias ns="nix-shell"
 alias refresh='exec $SHELL -l'

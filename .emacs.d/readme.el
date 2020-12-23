@@ -51,6 +51,11 @@
       kept-old-versions 2
       version-control t)
 
+(setq-default indent-tabs-mode nil
+              tab-width 2
+              c-basic-offset 2
+              py-indent-offset 2)
+(setq js-indent-level 2)
 (add-hook 'prog-mode-hook (lambda ()
                             (setq indent-tabs-mode nil)
                             (setq-default tab-width 2)
@@ -234,6 +239,14 @@ The prefix map is named 'my-DEF-map'."
 (use-package ivy-hydra
   :straight t
   :after (ivy hydra))
+
+(straight-use-package 'prescient)
+(straight-use-package 'ivy-prescient)
+(straight-use-package 'company-prescient)
+
+(ivy-prescient-mode 1)
+(company-prescient-mode 1)
+(prescient-persist-mode 1)
 
 (global-definer
  "i" '(counsel-imenu :wk "imenu"))
@@ -741,6 +754,8 @@ The prefix map is named 'my-DEF-map'."
  "C-(" 'sp-forward-barf-sexp
  "C-)" 'sp-forward-slurp-sexp)
 
+(setq web-mode-code-indent-offset 2)
+
 (use-package haskell-mode
   :straight t
   :init
@@ -839,8 +854,10 @@ The prefix map is named 'my-DEF-map'."
   "q" 'quit-window
   "c" 'haskell-presentation-clear)
 
-(use-package idris-mode
-  :straight t
+(use-package idris2-mode
+  :straight (idris2-mode :type git
+                         :host github
+                         :repo "redfish64/idris2-mode")
   :init
   (add-hook 'idris-mode-hook 'direnv-mode)
   ;(add-to-list 'display-buffer-alist
@@ -855,17 +872,17 @@ The prefix map is named 'my-DEF-map'."
   ;               (window-height . 15)))
   )
 
-(general-mode-leader-definer 'idris-mode-map
-  "c" '(idris-case-split              :wk "case split")
-  "d" '(idris-add-clause              :wk "add clause")
-  "D" '(idris-docs-at-point           :wk "docs at point")
-  "l" '(idris-make-lemma              :wk "make lemma")
-  "p" '(idris-proof-search            :wk "proof search")
-  "r" '(idris-load-file               :wk "load file")
-  "t" '(idris-type-at-point           :wk "type at point")
-  "T" '(idris-type-search             :wk "type search")
-  "w" '(idris-make-with-block         :wk "add with block"))
- (general-def idris-hole-list-mode-map
+(general-mode-leader-definer 'idris2-mode-map
+  "c" '(idris2-case-split              :wk "case split")
+  "d" '(idris2-add-clause              :wk "add clause")
+  "D" '(idris2-docs-at-point           :wk "docs at point")
+  "l" '(idris2-make-lemma              :wk "make lemma")
+  "p" '(idris2-proof-search            :wk "proof search")
+  "r" '(idris2-load-file               :wk "load file")
+  "t" '(idris2-type-at-point           :wk "type at point")
+  "T" '(idris2-type-search             :wk "type search")
+  "w" '(idris2-make-with-block         :wk "add with block"))
+ (general-def idris2-hole-list-mode-map
    "q" 'kill-buffer-and-window)
 
 (use-package agda-input
@@ -902,3 +919,18 @@ The prefix map is named 'my-DEF-map'."
 (use-package go-mode
   :straight t
   )
+
+(use-package nodejs-repl
+  :straight t)
+(general-define-key
+ :states 'visual
+ :keymaps 'web-mode-map
+ "e" 'nodejs-repl-send-region)
+(general-define-key
+ :states 'normal
+ :keymaps 'web-mode-map
+ "e" 'nodejs-repl-send-last-expression)
+
+(add-hook 'js-mode-hook (lambda () (setq-local c-basic-offset 2)))
+(add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
+(add-hook 'js-mode-hook (lambda () (setq js-jsx-indent-level 2)))
