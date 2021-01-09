@@ -3,7 +3,7 @@
 
 ACTIVEOUTPUT=$(xrandr | grep -E " connected (primary )?[1-9]+" | sed -e "s/\([A-Z0-9]\+\) connected.*/\1/")
 LAPTOP=eDP-1
-EXTERNAL=DP-2-1
+EXTERNAL=HDMI-2
 CHOICE=$1
 
 case "$CHOICE" in

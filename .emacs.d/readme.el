@@ -479,6 +479,9 @@ The prefix map is named 'my-DEF-map'."
   :init
   (treemacs-resize-icons 14))
 
+(global-definer
+  "TAB" '(treemacs :wk "treemacs"))
+
 (use-package projectile
   :straight t)
 
@@ -562,6 +565,68 @@ The prefix map is named 'my-DEF-map'."
 (setq whitespace-style '(face trailing empty tabs))
 (global-whitespace-mode)
 (diminish 'global-whitespace-mode)
+
+(use-package ht
+  :straight t)
+
+(defcustom scratch-project-path (expand-file-name "~/Development/scratch-projects/")
+  "The path to your projects folder."
+  :type 'dir)
+
+(defvar scratch-projects-table (ht-create)
+  "A hashtable of scratch projects.")
+
+(cl-defstruct (scratch-project (:constructor scratch-project-create)
+                               (:copier nil))
+  name mode src-dir extension)
+
+(cl-defun register-scratch-project (&key name mode src-dir extension)
+  "Register a new scratch project."
+  (ht-set scratch-projects-table name (scratch-project-create :name name :mode mode :src-dir src-dir :extension extension))
+  (projectile-add-known-project (concat scratch-project-path name)))
+
+(defun completing-read-project ()
+  "Helper for performing a completing read of the `scratch-projects-table'."
+  (let ((project-name (completing-read "Project: " (ht-keys scratch-projects-table))))
+    (ht-get scratch-projects-table project-name)))
+
+(defun open-scratch-project ()
+  "Opens a scratch project."
+  (interactive)
+  (let* ((project (completing-read-project)))
+    (projectile-switch-project-by-name (concat scratch-project-path (scratch-project-name project)))))
+
+(defun new-scratch-file ()
+  "Create a new scratch file inside of a scratch project."
+  (interactive)
+  (let ((project (completing-read-project))
+        (filename (read-from-minibuffer "File Name: ")))
+    (find-file (f-join scratch-project-path
+                       (scratch-project-name project)
+                       (scratch-project-src-dir project)
+                       (concat filename (scratch-project-extension project))))))
+
+(register-scratch-project
+ :name "haskell"
+ :src-dir "src"
+ :mode 'haskell-mode
+ :extension ".hs")
+
+(register-scratch-project
+ :name "idris"
+ :src-dir "src"
+ :mode 'idris2-mode
+ :extension ".idr")
+
+(register-scratch-project
+ :name "agda-scratchpad"
+ :src-dir "src"
+ :mode 'agda2-mode
+ :extension ".agda")
+
+(general-global-menu-definer "scratch projects" "f p"
+                             "s" '(open-scratch-project :wk "scratch project")
+                             "x" '(new-scratch-file :wk "new scratch file"))
 
 (use-package direnv
   :straight t
@@ -756,6 +821,11 @@ The prefix map is named 'my-DEF-map'."
 
 (setq web-mode-code-indent-offset 2)
 
+;(general-local-motion-definer 'haskell-mode-map
+;  "k" '(beginning-of-defun :wk "top of definition")
+;  "j" '(end-of-defun :wk "bottom of definition")
+;  "d" '(haskell-mode-goto-loc :wk "goto definition"))
+
 (use-package haskell-mode
   :straight t
   :init
@@ -763,42 +833,51 @@ The prefix map is named 'my-DEF-map'."
   (add-hook 'haskell-mode-hook 'haskell-decl-scan-mode)
   (add-hook 'haskell-mode-hook (lambda () (flycheck-mode -1)))
   :config
-  ;(setq haskell-nix-wrapper
-  ;      (lambda (args)
-  ;        (apply default-nix-wrapper (list (append args (list "--ghc-option" "-Wwarn"))))))
-
-  ;(setq haskell-process-wrapper-function haskell-nix-wrapper)
 
   (setq haskell-process-wrapper-function
         (lambda (args) (apply 'nix-shell-command (nix-current-sandbox) args)))
 
   (setq haskell-font-lock-symbols t)
   (setq haskell-process-use-presentation-mode t)
+
   (setq haskell-ghci-options
         '("-ferror-spans"
           "-fdefer-typed-holes"
           "-fno-max-relevant-binds"
           "-fno-diagnostics-show-caret"
-          "-fno-show-valid-hole-fits"
-          "-fobject-code"
-          "-fbyte-code"))
-  (setq haskell-process-args-cabal-new-repl
-        (mapcar (lambda (opt) (concat "--repl-options=" opt)) haskell-ghci-options))
-  (setq haskell-process-args-stack-ghci
-        (list (concat "--ghci-options=" (string-join haskell-ghci-options " "))
-              "--no-build"
-              "--no-load"))
+          "-fno-show-valid-hole-fits"))
+
+  (defun mk-ghc-option (opt)
+    (concat "--ghc-option=" opt))
+
+  (setq haskell-process-args-cabal-repl (cons "-O0"
+                                              (mapcar (lambda (opt) (mk-ghc-option opt)) haskell-ghci-options)))
+
+  (setq haskell-process-args-cabal-new-repl (cons "-O0"
+                                              (mapcar (lambda (opt) (mk-ghc-option opt)) haskell-ghci-options)))
+
   (setq haskell-process-args-ghci haskell-ghci-options)
+
   (setq haskell-process-auto-import-loaded-modules t)
+
   (setq haskell-font-lock-symbols-alist
         '(("\\" . "λ")
+          ("->" . "→")
+          ("<-" . "←")
+          ("=>" . "⇒")
+          ("==" . "≡")
+          ("/=" . "≢")
+          (">=" . "≥")
+          ("<=" . "≤")
+          ("!!" . "‼")
+          ("-<" . "↢")
+          ("::" . "∷")
           ("." "∘" haskell-font-lock-dot-is-not-composition)
           ("forall" . "∀")))
-  (setq haskell-interactive-popup-errors nil)
 
+  (setq haskell-interactive-popup-errors nil)
   (setq haskell-indentation-left-offset 4)
   (setq haskell-indentation-layout-offset 4))
-  ;(push '("*Haskell Presentation*" :height 20 :position bottom) popwin:special-display-config))
 
 (defun haskell-interactive-send-command (cmd)
   (haskell-interactive-mode-set-prompt cmd)
@@ -853,6 +932,11 @@ The prefix map is named 'my-DEF-map'."
 (evil-collection-define-key 'normal 'haskell-presentation-mode-map
   "q" 'quit-window
   "c" 'haskell-presentation-clear)
+
+(defun browse-ghc-manual ()
+  "Browse the GHC user manual online."
+  (interactive)
+  (browse-url "https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/"))
 
 (use-package idris2-mode
   :straight (idris2-mode :type git

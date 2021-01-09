@@ -130,7 +130,7 @@ myLayoutHook = avoidStruts $ fullScreenToggle $ flex ||| tabs
                  standardLayouts = mySpacing . myGaps . named "Std 2/3" $ ResizableTall 1 (1/20) (2/3) []
 
 myBrowser      = "/usr/bin/firefox"
-myTerminal     = "/home/solomon/.local/bin/termonad"
+myTerminal     = "termonad"
 myLauncher     = mconcat $ intersperse " " [path, font, bgcolor, fgcolor, sfcolor, sbcolor]
     where
         path = "dmenu_run"
